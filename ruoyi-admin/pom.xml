@@ -74,10 +74,10 @@
         </dependency>
 
         <!-- api模块-->
-        <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>ruoyi-api</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.ruoyi</groupId>-->
+<!--            <artifactId>ruoyi-api</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
