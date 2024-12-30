@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfDeployMapper">
+    <resultMap type="Deploy" id="DeployResultVo">
+        <result property="id" column="ID_"/>
+        <result property="rev" column="REV_"/>
+        <result property="category" column="CATEGORY_"/>
+        <result property="name" column="NAME_"/>
+        <result property="key" column="KEY_"/>
+        <result property="version" column="VERSION_"/>
+        <result property="deploymentId" column="DEPLOYMENT_ID_"/>
+        <result property="resourceName" column="RESOURCE_NAME_"/>
+        <result property="dgrmResourceName" column="DGRM_RESOURCE_NAME_"/>
+        <result property="description" column="DESCRIPTION_"/>
+        <result property="hasStartFormKey" column="HAS_START_FORM_KEY_"/>
+        <result property="hasGraphicalNotation" column="HAS_GRAPHICAL_NOTATIO"/>
+        <result property="suspensionState" column="SUSPENSION_STATE_"/>
+        <result property="tenantId" column="TENANT_ID_"/>
+        <result property="engineVersion" column="ENGINE_VERSION_"/>
+        <result property="derivedFrom" column="DERIVED_FROM_"/>
+        <result property="derivedFromRoot" column="DERIVED_FROM_ROOT_"/>
+        <result property="derivedVersion" column="DERIVED_VERSION_"/>
+
+    </resultMap>
+
+    <select id="selectWfDeployList" resultMap="DeployResultVo">
+        SELECT RES.* from ACT_RE_PROCDEF RES
+        WHERE
+        RES.VERSION_ = (
+        select max(VERSION_) from ACT_RE_PROCDEF where KEY_ = RES.KEY_ and ( (TENANT_ID_ IS NOT NULL and TENANT_ID_ =
+        RES.TENANT_ID_) or (TENANT_ID_ IS NULL and RES.TENANT_ID_ IS NULL) )
+        )
+        <if test="procdefIdList != null  and procdefIdList.size() > 0">
+            AND DEPLOYMENT_ID_ IN
+            <foreach item="procdefId" collection="procdefIdList" open="(" separator="," close=")">
+                #{procdefId}
+            </foreach>
+        </if>
+        <if test="processQuery.processName != null  and processQuery.processName != ''">and NAME_ = #{processQuery.processName}</if>
+        <if test="processQuery.category != null  and processQuery.category != ''">and CATEGORY_ = #{processQuery.category}</if>
+        <if test="processQuery.state != null  and processQuery.state != ''">and SUSPENSION_STATE_ = #{processQuery.state}</if>
+        order by RES.KEY_ asc
+    </select>
+</mapper>

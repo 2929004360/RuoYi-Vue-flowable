@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfModelTemplateMapper">
+
+    <resultMap type="WfModelTemplate" id="WfModelTemplateResult">
+        <result property="modelTemplateId" column="model_template_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="name" column="name"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="type" column="type"/>
+        <result property="formType" column="form_type"/>
+        <result property="bpmnXml" column="bpmnXml"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWfModelTemplateVo">
+        select model_template_id,
+               dept_id,
+               name,
+               dept_name,
+               type,
+               form_type,
+               bpmnXml,
+               create_time,
+               update_time
+        from wf_model_template
+    </sql>
+
+    <sql id="selectWfModelTemplateSql">
+            model_template_id,
+            dept_id,
+            `name`,
+            dept_name,
+            `type`,
+            `form_type`,
+            bpmnXml,
+            create_time,
+            update_time
+    </sql>
+
+    <select id="selectWfModelTemplateList" parameterType="WfModelTemplate" resultMap="WfModelTemplateResult">
+        <include refid="selectWfModelTemplateVo"/>
+        <where>
+            <if test="deptId != null  and deptId != ''">and dept_id = #{deptId}</if>
+            <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="deptName != null  and deptName != ''">and dept_name like concat('%', #{deptName}, '%')</if>
+            <if test="type != null  and type != ''">and type = #{type}</if>
+            <if test="formType != null  and formType != ''">and form_type = #{formType}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and create_time between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <if test="params.beginUpdateTime != null and params.beginUpdateTime != '' and params.endUpdateTime != null and params.endUpdateTime != ''">
+                and update_time between #{params.beginUpdateTime} and #{params.endUpdateTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectWfModelTemplateByModelTemplateId" parameterType="String" resultMap="WfModelTemplateResult">
+        <include refid="selectWfModelTemplateVo"/>
+        where model_template_id = #{modelTemplateId}
+    </select>
+
+    <select id="selectWfModelTemplateListVo" resultMap="WfModelTemplateResult">
+        select DISTINCT
+        <include refid="selectWfModelTemplateSql"/>
+        FROM (
+        select
+        <include refid="selectWfModelTemplateSql"/>
+        FROM wf_model_template where dept_id in
+        <foreach item="deptId" collection="deptIdList" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+        UNION ALL
+        select
+        <include refid="selectWfModelTemplateSql"/>
+        FROM wf_model_template where dept_id = #{wfModelTemplate.deptId} and type = '1'
+        UNION ALL
+        select
+        <include refid="selectWfModelTemplateSql"/>
+        FROM wf_model_template where dept_id in
+        <foreach item="deptId" collection="ancestorsList" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+        and type = '2'
+        ) f
+        <where>
+            <if test="wfModelTemplate.name != null and wfModelTemplate.name != ''">and `name` =
+                #{wfModelTemplate.name}
+            </if>
+            <if test="wfModelTemplate.formType != null  and wfModelTemplate.formType != ''">and form_type = #{wfModelTemplate.formType}</if>
+        </where>
+    </select>
+
+    <insert id="insertWfModelTemplate" parameterType="WfModelTemplate">
+        insert into wf_model_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="modelTemplateId != null">model_template_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="name != null">name,</if>
+            <if test="deptName != null and deptName != ''">dept_name,</if>
+            <if test="type != null">type,</if>
+            <if test="formType != null">form_type,</if>
+            <if test="bpmnXml != null">bpmnXml,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="modelTemplateId != null">#{modelTemplateId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="deptName != null and deptName != ''">#{deptName},</if>
+            <if test="type != null">#{type},</if>
+            <if test="formType != null">#{formType},</if>
+            <if test="bpmnXml != null">#{bpmnXml},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWfModelTemplate" parameterType="WfModelTemplate">
+        update wf_model_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="deptName != null and deptName != ''">dept_name = #{deptName},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="formType != null">form_type = #{formType},</if>
+            <if test="bpmnXml != null">bpmnXml = #{bpmnXml},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where model_template_id = #{modelTemplateId}
+    </update>
+
+    <delete id="deleteWfModelTemplateByModelTemplateId" parameterType="String">
+        delete
+        from wf_model_template
+        where model_template_id = #{modelTemplateId}
+    </delete>
+
+    <delete id="deleteWfModelTemplateByModelTemplateIds" parameterType="String">
+        delete from wf_model_template where model_template_id in
+        <foreach item="modelTemplateId" collection="array" open="(" separator="," close=")">
+            #{modelTemplateId}
+        </foreach>
+    </delete>
+</mapper>

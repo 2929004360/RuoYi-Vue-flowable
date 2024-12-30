@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfModelMapper">
+    <resultMap type="ActReModel" id="ActReModelResult">
+        <result property="id" column="ID_"/>
+        <result property="rev" column="REV_"/>
+        <result property="name" column="NAME_"/>
+        <result property="key" column="KEY_"/>
+        <result property="category" column="CATEGORY_"/>
+        <result property="createTime" column="CREATE_TIME_"/>
+        <result property="lastUpdateTime" column="LAST_UPDATE_TIME_"/>
+        <result property="version" column="VERSION_"/>
+        <result property="metaInfo" column="META_INFO_"/>
+        <result property="deploymentId" column="DEPLOYMENT_ID_"/>
+        <result property="editorSourceValueId" column="EDITOR_SOURCE_VALUE_ID_"/>
+        <result property="editorSourceExtraValueId" column="EDITOR_SOURCE_EXTRA_VALUE_ID_"/>
+        <result property="tenantId" column="TENANT_ID_"/>
+    </resultMap>
+
+    <select id="selectListVo" resultMap="ActReModelResult">
+        SELECT RES.* from ACT_RE_MODEL RES
+        WHERE RES.VERSION_ = (select max(VERSION_) from ACT_RE_MODEL where KEY_ = RES.KEY_)
+        and ID_ in (
+        SELECT DISTINCT model_id FROM (
+        SELECT model_id FROM wf_model_permission WHERE type = '1' AND permission_id in
+        <foreach item="userId" collection="userIdList" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        UNION ALL
+        SELECT model_id FROM wf_model_permission WHERE type = '2' AND permission_id in
+        <foreach item="deptId" collection="deptIdList" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+        ) m
+        )
+        <if test="modelBo.modelName != null  and modelBo.modelName != ''">and NAME_ = #{modelBo.modelName}</if>
+        <if test="modelBo.modelKey != null  and modelBo.modelKey != ''">and KEY_ = #{modelBo.modelKey}</if>
+        <if test="modelBo.category != null  and modelBo.category != ''">and CATEGORY_ = #{modelBo.category}</if>
+        ORDER BY CREATE_TIME_ DESC
+    </select>
+
+    <select id="selectList" resultMap="ActReModelResult">
+        SELECT RES.* from ACT_RE_MODEL RES
+        WHERE RES.VERSION_ = (select max(VERSION_) from ACT_RE_MODEL where KEY_ = RES.KEY_)
+        <if test="modelName != null  and modelName != ''">and NAME_ = #{modelName}</if>
+        <if test="modelKey != null  and modelKey != ''">and KEY_ = #{modelKey}</if>
+        <if test="category != null  and category != ''">and CATEGORY_ = #{category}</if>
+        order by RES.CREATE_TIME_ desc
+    </select>
+</mapper>

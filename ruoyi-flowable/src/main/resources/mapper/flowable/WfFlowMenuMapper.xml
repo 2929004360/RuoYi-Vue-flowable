@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfFlowMenuMapper">
+
+    <resultMap type="WfFlowMenu" id="WfFlowMenuResult">
+        <result property="flowMenuId"    column="flow_menu_id"    />
+        <result property="menuId"    column="menu_id"    />
+        <result property="name"    column="name"    />
+        <result property="create"    column="create"    />
+        <result property="view"    column="view"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectWfFlowMenuVo">
+        select flow_menu_id, menu_id, name, `create`, `view`, create_time, update_time from wf_flow_menu
+    </sql>
+
+    <select id="selectWfFlowMenuList" parameterType="WfFlowMenu" resultMap="WfFlowMenuResult">
+        <include refid="selectWfFlowMenuVo"/>
+        <where>
+            <if test="menuId != null  and menuId != ''"> and menu_id = #{menuId}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="create != null  and create != ''"> and `create` = #{create}</if>
+            <if test="view != null  and view != ''"> and `view` = #{view}</if>
+        </where>
+    </select>
+
+    <select id="selectWfFlowMenuByFlowMenuId" parameterType="String" resultMap="WfFlowMenuResult">
+        <include refid="selectWfFlowMenuVo"/>
+        where flow_menu_id = #{flowMenuId}
+    </select>
+
+    <select id="getWfFlowMenuInfo" resultMap="WfFlowMenuResult">
+        <include refid="selectWfFlowMenuVo"/>
+        where menu_id = #{menuId}
+    </select>
+
+    <insert id="insertWfFlowMenu" parameterType="WfFlowMenu">
+        insert into wf_flow_menu
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="flowMenuId != null">flow_menu_id,</if>
+            <if test="menuId != null and menuId != ''">menu_id,</if>
+            <if test="name != null">`name`,</if>
+            <if test="create != null and create != ''">`create`,</if>
+            <if test="view != null">`view`,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="flowMenuId != null">#{flowMenuId},</if>
+            <if test="menuId != null and menuId != ''">#{menuId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="create != null and create != ''">#{create},</if>
+            <if test="view != null">#{view},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWfFlowMenu" parameterType="WfFlowMenu">
+        update wf_flow_menu
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="menuId != null and menuId != ''">menu_id = #{menuId},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="create != null and create != ''">`create` = #{create},</if>
+            <if test="view != null">`view` = #{view},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where flow_menu_id = #{flowMenuId}
+    </update>
+
+    <delete id="deleteWfFlowMenuByFlowMenuId" parameterType="String">
+        delete from wf_flow_menu where flow_menu_id = #{flowMenuId}
+    </delete>
+
+    <delete id="deleteWfFlowMenuByFlowMenuIds" parameterType="String">
+        delete from wf_flow_menu where flow_menu_id in
+        <foreach item="flowMenuId" collection="array" open="(" separator="," close=")">
+            #{flowMenuId}
+        </foreach>
+    </delete>
+</mapper>

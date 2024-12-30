@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfModelAssociationTemplateMapper">
+
+    <resultMap type="WfModelAssociationTemplate" id="WfModelAssociationTemplateResult">
+        <result property="modelTemplateId"    column="model_template_id"    />
+        <result property="modelId"    column="model_id"    />
+    </resultMap>
+
+    <sql id="selectWfModelAssociationTemplateVo">
+        select model_template_id, model_id from wf_model_association_template
+    </sql>
+
+    <select id="selectWfModelAssociationTemplateList" parameterType="WfModelAssociationTemplate" resultMap="WfModelAssociationTemplateResult">
+        <include refid="selectWfModelAssociationTemplateVo"/>
+        <where>
+            <if test="modelTemplateId != null  and modelTemplateId != ''"> and model_template_id = #{modelTemplateId}</if>
+            <if test="modelId != null  and modelId != ''"> and model_id = #{modelId}</if>
+        </where>
+    </select>
+
+    <select id="selectWfModelAssociationTemplateByModelTemplateId" parameterType="String" resultMap="WfModelAssociationTemplateResult">
+        <include refid="selectWfModelAssociationTemplateVo"/>
+        where model_template_id = #{modelTemplateId}
+    </select>
+
+    <insert id="insertWfModelAssociationTemplate" parameterType="WfModelAssociationTemplate">
+        insert into wf_model_association_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="modelTemplateId != null and modelTemplateId != ''">model_template_id,</if>
+            <if test="modelId != null and modelId != ''">model_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="modelTemplateId != null and modelTemplateId != ''">#{modelTemplateId},</if>
+            <if test="modelId != null and modelId != ''">#{modelId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWfModelAssociationTemplate" parameterType="WfModelAssociationTemplate">
+        update wf_model_association_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="modelId != null and modelId != ''">model_id = #{modelId},</if>
+        </trim>
+        where model_template_id = #{modelTemplateId}
+    </update>
+
+    <delete id="deleteWfModelAssociationTemplateByModelTemplateId" parameterType="String">
+        delete from wf_model_association_template where model_template_id = #{modelTemplateId}
+    </delete>
+
+    <delete id="deleteWfModelAssociationTemplateByModelTemplateIds" parameterType="String">
+        delete from wf_model_association_template where model_template_id in
+        <foreach item="modelTemplateId" collection="array" open="(" separator="," close=")">
+            #{modelTemplateId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteWfModelAssociationTemplate">
+        delete from wf_model_association_template where model_template_id = #{modelTemplateId} and model_id = #{modelId}
+    </delete>
+</mapper>

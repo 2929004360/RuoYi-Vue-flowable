@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfIconMapper">
+
+    <resultMap type="WfIcon" id="WfIconResult">
+        <result property="deploymentId"    column="deployment_id"    />
+        <result property="icon"    column="icon"    />
+    </resultMap>
+
+    <sql id="selectWfIconVo">
+        select deployment_id, icon from wf_icon
+    </sql>
+
+    <select id="selectWfIconList" parameterType="WfIcon" resultMap="WfIconResult">
+        <include refid="selectWfIconVo"/>
+        <where>
+            <if test="deploymentId != null  and deploymentId != ''"> and deployment_id = #{deploymentId}</if>
+            <if test="icon != null  and icon != ''"> and icon = #{icon}</if>
+        </where>
+    </select>
+
+    <select id="selectWfIconByDeploymentId" parameterType="String" resultMap="WfIconResult">
+        <include refid="selectWfIconVo"/>
+        where deployment_id = #{deploymentId}
+    </select>
+
+    <insert id="insertWfIcon" parameterType="WfIcon">
+        insert into wf_icon
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deploymentId != null">deployment_id,</if>
+            <if test="icon != null">icon,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deploymentId != null">#{deploymentId},</if>
+            <if test="icon != null">#{icon},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWfIcon" parameterType="WfIcon">
+        update wf_icon
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="icon != null">icon = #{icon},</if>
+        </trim>
+        where deployment_id = #{deploymentId}
+    </update>
+
+    <delete id="deleteWfIconByDeploymentId" parameterType="String">
+        delete from wf_icon where deployment_id = #{deploymentId}
+    </delete>
+
+    <delete id="deleteWfIconByDeploymentIds" parameterType="String">
+        delete from wf_icon where deployment_id in
+        <foreach item="deploymentId" collection="array" open="(" separator="," close=")">
+            #{deploymentId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.WfModelPermissionMapper">
+
+    <resultMap type="WfModelPermission" id="WfModelPermissionResult">
+        <result property="modelPermissionId" column="model_permission_id"/>
+        <result property="modelId" column="model_id"/>
+        <result property="permissionId" column="permission_id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWfModelPermissionVo">
+        select model_permission_id, model_id, permission_id, name, type, create_time, update_time
+        from wf_model_permission
+    </sql>
+
+    <select id="selectWfModelPermissionList" resultMap="WfModelPermissionResult">
+        <include refid="selectWfModelPermissionVo"/>
+        <where>
+            <if test="wfModelPermission.modelId != null  and wfModelPermission.modelId != ''">and model_id = #{wfModelPermission.modelId}</if>
+            <if test="wfModelPermission.name != null  and wfModelPermission.name != ''">and `name` like concat('%', #{wfModelPermission.name}, '%')</if>
+            <if test="wfModelPermission.type != null  and wfModelPermission.type != ''">and `type` = #{wfModelPermission.type}</if>
+            <if test="permissionIdList != null and permissionIdList.size() > 0">
+                and permission_id in
+                <foreach item="permissionId" collection="permissionIdList" open="(" separator="," close=")">
+                    #{permissionId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="selectWfModelPermissionByModelPermissionId" parameterType="String" resultMap="WfModelPermissionResult">
+        <include refid="selectWfModelPermissionVo"/>
+        where model_permission_id = #{modelPermissionId}
+    </select>
+
+    <insert id="insertWfModelPermission" parameterType="WfModelPermission">
+        insert into wf_model_permission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="modelPermissionId != null">model_permission_id,</if>
+            <if test="modelId != null and modelId != ''">model_id,</if>
+            <if test="permissionId != null">permission_id,</if>
+            <if test="name != null">name,</if>
+            <if test="type != null">type,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="modelPermissionId != null">#{modelPermissionId},</if>
+            <if test="modelId != null and modelId != ''">#{modelId},</if>
+            <if test="permissionId != null">#{permissionId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="type != null">#{type},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertWfModelPermissionList">
+        INSERT INTO wf_model_permission (
+        model_permission_id,
+        model_id,
+        permission_id,
+        name,
+        type,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.modelPermissionId},#{item.modelId},#{item.permissionId},#{item.name},#{item.type},#{item.createTime},#{item.updateTime})
+        </foreach>
+    </insert>
+
+    <update id="updateWfModelPermission" parameterType="WfModelPermission">
+        update wf_model_permission
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="modelId != null and modelId != ''">model_id = #{modelId},</if>
+            <if test="permissionId != null">permission_id = #{permissionId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where model_permission_id = #{modelPermissionId}
+    </update>
+
+    <delete id="deleteWfModelPermissionByModelPermissionId" parameterType="String">
+        delete
+        from wf_model_permission
+        where model_permission_id = #{modelPermissionId}
+    </delete>
+
+    <delete id="deleteWfModelPermissionByModelPermissionIds" parameterType="String">
+        delete from wf_model_permission where model_permission_id in
+        <foreach item="modelPermissionId" collection="array" open="(" separator="," close=")">
+            #{modelPermissionId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteWfModelPermissionByModelId">
+        delete from wf_model_permission where model_id = #{modelId}
+    </delete>
+</mapper>

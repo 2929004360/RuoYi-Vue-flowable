@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.flowable.mapper.FlowTaskMapper">
+  <select id="queryActivityInstance" resultType="org.flowable.engine.impl.persistence.entity.ActivityInstanceEntityImpl">
+        select t.* from
+        ACT_RU_ACTINST t
+       <where>
+           <if test="processInstanceId !=null and processInstanceId != ''" >
+              t.PROC_INST_ID_=#{processInstanceId} and ACT_TYPE_ = 'userTask' and  END_TIME_ is not null
+           </if>
+
+       </where>
+         order by t.END_TIME_ ASC
+
+    </select>
+
+    <delete id="deleteRunActinstsByIds" parameterType="java.util.List">
+        delete from ACT_RU_ACTINST where ID_ in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteHisActinstsByIds" parameterType="java.util.List">
+        delete from ACT_HI_ACTINST where ID_ in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAllHisAndRun" parameterType="String">
+      delete  from  ACT_RU_ACTINST  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_RU_IDENTITYLINK  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_RU_TASK  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_RU_VARIABLE  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_RU_EXECUTION  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_ACTINST where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_COMMENT where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_IDENTITYLINK  where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_PROCINST where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_TASKINST where PROC_INST_ID_ = #{processInstanceId};
+      delete  from  ACT_HI_VARINST  where PROC_INST_ID_ = #{processInstanceId};
+    </delete>
+
+    <select id="querySubTaskByParentTaskId"  resultType="Integer">
+          select count(1) from  ACT_RU_TASK where PARENT_TASK_ID_=#{parentTaskId}
+    </select>
+</mapper>
