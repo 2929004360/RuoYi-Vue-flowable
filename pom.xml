@@ -10,7 +10,7 @@
 
     <name>ruoyi</name>
     <url>http://www.ruoyi.vip</url>
-    <description>若依管理系统</description>
+    <description>Flowable工作流管理</description>
 
     <properties>
         <ruoyi.version>3.8.8</ruoyi.version>

@@ -49,7 +49,7 @@
 
 - admin/admin123  
 
-演示地址：
+演示地址：http://ry.orangepromax.asia/index
 
 ## 联系方式
 
