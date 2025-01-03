@@ -24,9 +24,9 @@ import com.ruoyi.flowable.service.IWfRoamHistoricalService;
 import com.ruoyi.flowable.service.IWfTaskService;
 import com.ruoyi.flowable.utils.IdWorker;
 import com.ruoyi.flowable.utils.StringUtils;
-import com.ruoyi.system.service.ISysDeptService;
-import com.ruoyi.system.service.ISysRoleService;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
+import com.ruoyi.system.api.service.ISysRoleServiceApi;
+import com.ruoyi.system.api.service.ISysUserServiceApi;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.common.engine.api.delegate.event.FlowableEngineEntityEvent;
 import org.flowable.engine.HistoryService;
@@ -80,15 +80,15 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
 
     @Lazy
     @Autowired
-    private ISysUserService userService;
+    private ISysUserServiceApi userServiceApi;
 
     @Lazy
     @Autowired
-    private ISysRoleService roleService;
+    private ISysRoleServiceApi roleServiceApi;
 
     @Lazy
     @Autowired
-    private ISysDeptService deptService;
+    private ISysDeptServiceApi deptServiceApi;
 
     @Autowired
     @Lazy
@@ -239,7 +239,7 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
             if (BpmnXMLConstants.ELEMENT_EVENT_START.equals(activityInstance.getActivityType())) {
                 if (ObjectUtil.isNotNull(historicProcIns)) {
                     Long userId = Long.parseLong(historicProcIns.getStartUserId());
-                    SysUser sysUser = userService.selectUserById(userId);
+                    SysUser sysUser = userServiceApi.selectUserById(userId);
                     String nickName = sysUser.getNickName();
                     if (nickName != null) {
                         elementVo.setAssigneeId(userId);
@@ -249,7 +249,7 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
             } else if (BpmnXMLConstants.ELEMENT_TASK_USER.equals(activityInstance.getActivityType())) {
                 if (StringUtils.isNotBlank(activityInstance.getAssignee())) {
                     Long userId = Long.parseLong(activityInstance.getAssignee());
-                    SysUser sysUser = userService.selectUserById(userId);
+                    SysUser sysUser = userServiceApi.selectUserById(userId);
                     String nickName = sysUser.getNickName();
                     elementVo.setAssigneeId(userId);
                     elementVo.setAssigneeName(nickName);
@@ -261,18 +261,18 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
                     if ("candidate".equals(identityLink.getType())) {
                         if (StringUtils.isNotBlank(identityLink.getUserId())) {
                             Long userId = Long.parseLong(identityLink.getUserId());
-                            SysUser sysUser = userService.selectUserById(userId);
+                            SysUser sysUser = userServiceApi.selectUserById(userId);
                             String nickName = sysUser.getNickName();
                             stringBuilder.append(nickName).append(",");
                         }
                         if (StringUtils.isNotBlank(identityLink.getGroupId())) {
                             if (identityLink.getGroupId().startsWith(TaskConstants.ROLE_GROUP_PREFIX)) {
                                 Long roleId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.ROLE_GROUP_PREFIX));
-                                SysRole role = roleService.selectRoleById(roleId);
+                                SysRole role = roleServiceApi.selectRoleById(roleId);
                                 stringBuilder.append(role.getRoleName()).append(",");
                             } else if (identityLink.getGroupId().startsWith(TaskConstants.DEPT_GROUP_PREFIX)) {
                                 Long deptId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.DEPT_GROUP_PREFIX));
-                                SysDept dept = deptService.selectDeptById(deptId);
+                                SysDept dept = deptServiceApi.selectDeptById(deptId);
                                 stringBuilder.append(dept.getDeptName()).append(",");
                             }
                         }

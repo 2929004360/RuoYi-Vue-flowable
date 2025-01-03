@@ -15,14 +15,12 @@ import com.ruoyi.flowable.domain.vo.WfFormVo;
 import com.ruoyi.flowable.mapper.WfFormMapper;
 import com.ruoyi.flowable.service.IWfFormService;
 import com.ruoyi.flowable.utils.StringUtils;
-import com.ruoyi.system.service.ISysDeptService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import sun.security.util.SecurityConstants;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 流程表单Service业务层处理
@@ -36,7 +34,7 @@ public class WfFormServiceImpl implements IWfFormService {
 
     private final WfFormMapper baseMapper;
 
-    private final ISysDeptService sysDeptService;
+    private final ISysDeptServiceApi deptServiceApi;
 
     /**
      * 查询流程表单
@@ -62,11 +60,11 @@ public class WfFormServiceImpl implements IWfFormService {
         }
 
         Long deptId = SecurityUtils.getLoginUser().getUser().getDeptId();
-        List<Long> deptIdList = sysDeptService.selectBranchDeptId(deptId);
+        List<Long> deptIdList = deptServiceApi.selectBranchDeptId(deptId);
         deptIdList.add(deptId);
         bo.setDeptId(deptId);
 
-        SysDept sysDept = sysDeptService.selectDeptById(deptId);
+        SysDept sysDept = deptServiceApi.selectDeptById(deptId);
         String[] ancestorsArr = sysDept.getAncestors().split(",");
         List<Long> ancestorsList = Convert.toList(Long.class, ancestorsArr);
 

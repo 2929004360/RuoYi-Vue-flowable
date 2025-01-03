@@ -39,6 +39,11 @@
         <!-- flowable version -->
         <flowable.version>6.8.0</flowable.version>
         <aviator.version>5.3.1</aviator.version>
+
+        <!-- 工具 version -->
+        <lombok.version>1.18.34</lombok.version>
+        <hutool.version>5.8.15</hutool.version>
+        <guava.version>30.0-jre</guava.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -228,12 +233,21 @@
                 <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- system系统api模块-->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-system-api</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- flowable流程api模块-->
             <dependency>
                 <groupId>com.ruoyi</groupId>
                 <artifactId>ruoyi-flowable-api</artifactId>
                 <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- work工作api模块-->
             <dependency>
                 <groupId>com.ruoyi</groupId>
                 <artifactId>ruoyi-work-api</artifactId>
@@ -272,14 +286,14 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.34</version>
+                <version>${lombok.version}</version>
             </dependency>
 
             <!-- hutool工具包-->
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
-                <version>5.8.15</version>
+                <version>${hutool.version}</version>
             </dependency>
 
             <!-- flowable -->
@@ -310,7 +324,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>30.0-jre</version>
+                <version>${guava.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

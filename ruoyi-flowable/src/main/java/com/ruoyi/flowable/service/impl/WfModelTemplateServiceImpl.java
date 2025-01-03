@@ -16,7 +16,7 @@ import com.ruoyi.flowable.service.IWfModelService;
 import com.ruoyi.flowable.service.IWfModelTemplateService;
 import com.ruoyi.flowable.utils.IdWorker;
 import com.ruoyi.flowable.utils.ModelUtils;
-import com.ruoyi.system.service.ISysDeptService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.SequenceFlow;
@@ -40,7 +40,7 @@ public class WfModelTemplateServiceImpl implements IWfModelTemplateService {
     private WfModelTemplateMapper wfModelTemplateMapper;
 
     @Autowired
-    private ISysDeptService sysDeptService;
+    private ISysDeptServiceApi deptServiceApi;
 
     @Autowired
     private IWfModelAssociationTemplateService wfModelAssociationTemplateService;
@@ -76,17 +76,17 @@ public class WfModelTemplateServiceImpl implements IWfModelTemplateService {
      */
     @Override
     public List<WfModelTemplate> selectWfModelTemplateList(WfModelTemplate wfModelTemplate) {
-        if (SecurityUtils.hasRole("admin" )) {
+        if (SecurityUtils.hasRole("admin")) {
             return wfModelTemplateMapper.selectWfModelTemplateList(wfModelTemplate);
         }
 
         Long deptId = SecurityUtils.getLoginUser().getUser().getDeptId();
-        List<Long> deptIdList = sysDeptService.selectBranchDeptId(deptId);
+        List<Long> deptIdList = deptServiceApi.selectBranchDeptId(deptId);
         deptIdList.add(deptId);
         wfModelTemplate.setDeptId(deptId);
 
-        SysDept sysDept = sysDeptService.selectDeptById(deptId);
-        String[] ancestorsArr = sysDept.getAncestors().split("," );
+        SysDept sysDept = deptServiceApi.selectDeptById(deptId);
+        String[] ancestorsArr = sysDept.getAncestors().split(",");
         List<Long> ancestorsList = Convert.toList(Long.class, ancestorsArr);
 
         return wfModelTemplateMapper.selectWfModelTemplateListVo(wfModelTemplate, deptIdList, ancestorsList);
@@ -129,7 +129,7 @@ public class WfModelTemplateServiceImpl implements IWfModelTemplateService {
             WfModelAssociationTemplate wfModelAssociationTemplate = new WfModelAssociationTemplate();
             wfModelAssociationTemplate.setModelTemplateId(modelTemplateId);
             if (wfModelAssociationTemplateService.selectWfModelAssociationTemplateList(wfModelAssociationTemplate).size() > 0) {
-                throw new RuntimeException("模型模板已关联流程，请先解除关联！" );
+                throw new RuntimeException("模型模板已关联流程，请先解除关联！");
             }
         }
         return wfModelTemplateMapper.deleteWfModelTemplateByModelTemplateIds(modelTemplateIds);
@@ -156,24 +156,24 @@ public class WfModelTemplateServiceImpl implements IWfModelTemplateService {
     public int editBpmnXml(WfModelTemplate wfModelTemplate) {
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(wfModelTemplate.getBpmnXml());
         if (ObjectUtil.isEmpty(bpmnModel)) {
-            throw new RuntimeException("获取模型设计失败！" );
+            throw new RuntimeException("获取模型设计失败！");
         }
 
         // 获取开始节点
         StartEvent startEvent = ModelUtils.getStartEvent(bpmnModel);
         if (ObjectUtil.isNull(startEvent)) {
-            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！" );
+            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！");
         }
         if (FormType.PROCESS.getType().equals(wfModelTemplate.getFormType())) {
             // 获取开始节点配置的表单Key
             if (StrUtil.isBlank(startEvent.getFormKey())) {
-                throw new RuntimeException("请配置流程表单" );
+                throw new RuntimeException("请配置流程表单");
             }
         }
         //查看开始节点的后一个任务节点出口
         List<SequenceFlow> outgoingFlows = startEvent.getOutgoingFlows();
         if (Objects.isNull(outgoingFlows)) {
-            throw new RuntimeException("导入失败，流程配置错误！" );
+            throw new RuntimeException("导入失败，流程配置错误！");
         }
 
         // 保存 BPMN XML

@@ -9,8 +9,8 @@ import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.exception.ServiceException;
-import com.ruoyi.flowable.constant.TaskConstants;
 import com.ruoyi.flowable.api.domain.bo.WfTaskBo;
+import com.ruoyi.flowable.constant.TaskConstants;
 import com.ruoyi.flowable.domain.vo.WfFormVo;
 import com.ruoyi.flowable.domain.vo.WfTaskVo;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
@@ -18,9 +18,9 @@ import com.ruoyi.flowable.service.IWfDeployFormService;
 import com.ruoyi.flowable.service.IWfInstanceService;
 import com.ruoyi.flowable.utils.JsonUtils;
 import com.ruoyi.flowable.utils.StringUtils;
-import com.ruoyi.system.service.ISysDeptService;
-import com.ruoyi.system.service.ISysRoleService;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
+import com.ruoyi.system.api.service.ISysRoleServiceApi;
+import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.common.engine.api.FlowableObjectNotFoundException;
@@ -46,11 +46,11 @@ import java.util.*;
 public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInstanceService {
     private final IWfDeployFormService deployFormService;
     @Autowired
-    private ISysUserService sysUserService;
+    private ISysUserServiceApi userServiceApi;
     @Autowired
-    private ISysRoleService sysRoleService;
+    private ISysRoleServiceApi roleServiceApi;
     @Autowired
-    private ISysDeptService sysDeptService;
+    private ISysDeptServiceApi deptServiceApi;
 
     /**
      * 结束流程实例
@@ -144,7 +144,7 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
                 taskVo.setFinishTime(taskInstance.getEndTime());
                 if (StringUtils.isNotBlank(taskInstance.getAssignee())) {
                     Long userId = Long.parseLong(taskInstance.getAssignee());
-                    SysUser sysUser = sysUserService.selectUserById(userId);
+                    SysUser sysUser = userServiceApi.selectUserById(userId);
                     String nickName = sysUser.getNickName();
                     taskVo.setAssigneeId(userId);
                     taskVo.setAssigneeName(nickName);
@@ -156,18 +156,18 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
                     if ("candidate".equals(identityLink.getType())) {
                         if (StringUtils.isNotBlank(identityLink.getUserId())) {
                             Long userId = Long.parseLong(identityLink.getUserId());
-                            SysUser sysUser = sysUserService.selectUserById(userId);
+                            SysUser sysUser = userServiceApi.selectUserById(userId);
                             String nickName = sysUser.getNickName();
                             stringBuilder.append(nickName).append(",");
                         }
                         if (StringUtils.isNotBlank(identityLink.getGroupId())) {
                             if (identityLink.getGroupId().startsWith(TaskConstants.ROLE_GROUP_PREFIX)) {
                                 Long roleId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.ROLE_GROUP_PREFIX));
-                                SysRole role = sysRoleService.selectRoleById(roleId);
+                                SysRole role = roleServiceApi.selectRoleById(roleId);
                                 stringBuilder.append(role.getRoleName()).append(",");
                             } else if (identityLink.getGroupId().startsWith(TaskConstants.DEPT_GROUP_PREFIX)) {
                                 Long deptId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.DEPT_GROUP_PREFIX));
-                                SysDept dept = sysDeptService.selectDeptById(deptId);
+                                SysDept dept = deptServiceApi.selectDeptById(deptId);
                                 stringBuilder.append(dept.getDeptName()).append(",");
                             }
                         }

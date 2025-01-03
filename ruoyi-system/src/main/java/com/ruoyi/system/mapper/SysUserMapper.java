@@ -128,23 +128,23 @@ public interface SysUserMapper
     /**
      * 获取所有用户列表
      *
-     * @return
+     * @return 用户列表
      */
     List<SysUser> getAllUser();
 
     /**
      * 根据角色id获取用户列表
      *
-     * @param roleId
-     * @return
+     * @param roleId 角色id
+     * @return 用户列表
      */
     List<SysUser> getUserListByRoleId(String roleId);
 
     /**
      * 根据部门id获取下所有人的userId
      *
-     * @param userIds
-     * @return
+     * @param userIds 用户id集合
+     * @return 用户列表
      */
     List<SysUser> selectSysUserByUserIdList(@Param("userIds") long[] userIds);
 }

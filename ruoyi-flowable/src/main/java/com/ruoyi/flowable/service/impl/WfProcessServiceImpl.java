@@ -20,6 +20,7 @@ import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.common.exception.DataException;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -34,7 +35,6 @@ import com.ruoyi.flowable.domain.bo.ResubmitProcess;
 import com.ruoyi.flowable.domain.bo.WfModelBo;
 import com.ruoyi.flowable.domain.vo.*;
 import com.ruoyi.flowable.enums.FormType;
-import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.FlowableUtils;
 import com.ruoyi.flowable.handler.BusinessProcessDetailsHandler;
@@ -46,9 +46,9 @@ import com.ruoyi.flowable.page.PageQuery;
 import com.ruoyi.flowable.page.TableDataInfo;
 import com.ruoyi.flowable.service.*;
 import com.ruoyi.flowable.utils.*;
-import com.ruoyi.system.service.ISysDeptService;
-import com.ruoyi.system.service.ISysRoleService;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
+import com.ruoyi.system.api.service.ISysRoleServiceApi;
+import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.flowable.bpmn.BpmnAutoLayout;
@@ -94,13 +94,13 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     private final IWfTaskService wfTaskService;
 
     @Lazy
-    private final ISysUserService sysUserService;
+    private final ISysUserServiceApi userServiceApi;
 
     @Lazy
-    private final ISysRoleService sysRoleService;
+    private final ISysRoleServiceApi roleServiceApi;
 
     @Lazy
-    private final ISysDeptService sysDeptService;
+    private final ISysDeptServiceApi deptServiceApi;
 
     @Lazy
     private final WfDeployFormMapper deployFormMapper;
@@ -360,7 +360,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
             if (ObjectUtil.isNotNull(historicProcessInstance)) {
                 Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-                SysUser sysUser = sysUserService.selectUserById(userId);
+                SysUser sysUser = userServiceApi.selectUserById(userId);
                 String nickName = sysUser.getNickName();
                 flowTask.setStartUserId(userId);
                 flowTask.setStartUserName(nickName);
@@ -397,7 +397,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             // 流程发起人信息
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
             Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            SysUser sysUser = sysUserService.selectUserById(userId);
+            SysUser sysUser = userServiceApi.selectUserById(userId);
             String nickName = sysUser.getNickName();
             taskVo.setStartUserId(userId);
             taskVo.setStartUserName(nickName);
@@ -448,7 +448,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
             if (ObjectUtil.isNotNull(historicProcessInstance)) {
                 Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-                SysUser sysUser = sysUserService.selectUserById(userId);
+                SysUser sysUser = userServiceApi.selectUserById(userId);
                 String nickName = sysUser.getNickName();
                 flowTask.setStartUserId(userId);
                 flowTask.setStartUserName(nickName);
@@ -483,7 +483,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             // 流程发起人信息
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
             Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            SysUser sysUser = sysUserService.selectUserById(userId);
+            SysUser sysUser = userServiceApi.selectUserById(userId);
             String nickName = sysUser.getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
@@ -551,7 +551,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(histTask.getProcessInstanceId()).singleResult();
             if (ObjectUtil.isNotNull(historicProcessInstance)) {
                 Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-                SysUser sysUser = sysUserService.selectUserById(userId);
+                SysUser sysUser = userServiceApi.selectUserById(userId);
                 String nickName = sysUser.getNickName();
                 flowTask.setStartUserId(userId);
                 flowTask.setStartUserName(nickName);
@@ -596,7 +596,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             // 流程发起人信息
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(histTask.getProcessInstanceId()).singleResult();
             Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            SysUser sysUser = sysUserService.selectUserById(userId);
+            SysUser sysUser = userServiceApi.selectUserById(userId);
             String nickName = sysUser.getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
@@ -1489,7 +1489,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             if (BpmnXMLConstants.ELEMENT_EVENT_START.equals(activityInstance.getActivityType())) {
                 if (ObjectUtil.isNotNull(historicProcIns)) {
                     Long userId = Long.parseLong(historicProcIns.getStartUserId());
-                    SysUser sysUser = sysUserService.selectUserById(userId);
+                    SysUser sysUser = userServiceApi.selectUserById(userId);
                     String nickName = sysUser.getNickName();
                     if (nickName != null) {
                         elementVo.setAssigneeId(userId);
@@ -1499,7 +1499,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             } else if (BpmnXMLConstants.ELEMENT_TASK_USER.equals(activityInstance.getActivityType())) {
                 if (StringUtils.isNotBlank(activityInstance.getAssignee())) {
                     Long userId = Long.parseLong(activityInstance.getAssignee());
-                    SysUser sysUser = sysUserService.selectUserById(userId);
+                    SysUser sysUser = userServiceApi.selectUserById(userId);
                     String nickName = sysUser.getNickName();
                     elementVo.setAssigneeId(userId);
                     elementVo.setAssigneeName(nickName);
@@ -1511,18 +1511,18 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                     if ("candidate".equals(identityLink.getType())) {
                         if (StringUtils.isNotBlank(identityLink.getUserId())) {
                             Long userId = Long.parseLong(identityLink.getUserId());
-                            SysUser sysUser = sysUserService.selectUserById(userId);
+                            SysUser sysUser = userServiceApi.selectUserById(userId);
                             String nickName = sysUser.getNickName();
                             stringBuilder.append(nickName).append("," );
                         }
                         if (StringUtils.isNotBlank(identityLink.getGroupId())) {
                             if (identityLink.getGroupId().startsWith(TaskConstants.ROLE_GROUP_PREFIX)) {
                                 Long roleId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.ROLE_GROUP_PREFIX));
-                                SysRole role = sysRoleService.selectRoleById(roleId);
+                                SysRole role = roleServiceApi.selectRoleById(roleId);
                                 stringBuilder.append(role.getRoleName()).append("," );
                             } else if (identityLink.getGroupId().startsWith(TaskConstants.DEPT_GROUP_PREFIX)) {
                                 Long deptId = Long.parseLong(StringUtils.stripStart(identityLink.getGroupId(), TaskConstants.DEPT_GROUP_PREFIX));
-                                SysDept dept = sysDeptService.selectDeptById(deptId);
+                                SysDept dept = deptServiceApi.selectDeptById(deptId);
                                 stringBuilder.append(dept.getDeptName()).append("," );
                             }
                         }

@@ -296,8 +296,8 @@ public class SysDeptServiceImpl implements ISysDeptService
     /**
      * 获取下属部门
      *
-     * @param deptId
-     * @return
+     * @param deptId 部门ID
+     * @return 部门信息id集合
      */
     @Override
     public List<Long> selectBranchDeptId(Long deptId) {

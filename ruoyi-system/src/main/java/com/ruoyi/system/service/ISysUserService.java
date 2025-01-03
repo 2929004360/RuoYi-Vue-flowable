@@ -1,15 +1,15 @@
 package com.ruoyi.system.service;
 
-import java.util.List;
 import com.ruoyi.common.core.domain.entity.SysUser;
+
+import java.util.List;
 
 /**
  * 用户 业务层
  *
  * @author ruoyi
  */
-public interface ISysUserService
-{
+public interface ISysUserService {
     /**
      * 根据条件分页查询用户列表
      *
@@ -131,7 +131,7 @@ public interface ISysUserService
     /**
      * 用户授权角色
      *
-     * @param userId 用户ID
+     * @param userId  用户ID
      * @param roleIds 角色组
      */
     public void insertUserAuth(Long userId, Long[] roleIds);
@@ -156,7 +156,7 @@ public interface ISysUserService
      * 修改用户头像
      *
      * @param userName 用户名
-     * @param avatar 头像地址
+     * @param avatar   头像地址
      * @return 结果
      */
     public boolean updateUserAvatar(String userName, String avatar);
@@ -197,9 +197,9 @@ public interface ISysUserService
     /**
      * 导入用户数据
      *
-     * @param userList 用户数据列表
+     * @param userList        用户数据列表
      * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
-     * @param operName 操作用户
+     * @param operName        操作用户
      * @return 结果
      */
     public String importUser(List<SysUser> userList, Boolean isUpdateSupport, String operName);
@@ -207,31 +207,31 @@ public interface ISysUserService
     /**
      * 根据部门id获取下所有人的userId
      *
-     * @param deptId
-     * @return
+     * @param deptId 部门id
+     * @return userId集合
      */
     List<Long> listUserIdByDeptId(Long deptId);
 
     /**
      * 获取所有用户列表
      *
-     * @return
+     * @return 用户列表
      */
     List<SysUser> getAllUser();
 
     /**
      * 根据角色id获取用户列表
      *
-     * @param roleId
-     * @return
+     * @param roleId 角色id
+     * @return 用户列表
      */
     List<SysUser> getUserListByRoleId(String roleId);
 
     /**
      * 根据部门id获取下所有人的userId
      *
-     * @param userIds
-     * @return
+     * @param userIds 用户id集合
+     * @return 用户列表
      */
     List<SysUser> selectSysUserByUserIdList(long[] userIds);
 }

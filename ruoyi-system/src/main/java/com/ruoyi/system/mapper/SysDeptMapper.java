@@ -119,8 +119,8 @@ public interface SysDeptMapper
     /**
      * 获取下属部门
      *
-     * @param deptId
-     * @return
+     * @param deptId 部门ID
+     * @return 部门信息id集合
      */
     List<Long> selectBranchDeptId(Long deptId);
 }

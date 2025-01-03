@@ -11,7 +11,7 @@ import com.ruoyi.common.utils.bean.BeanValidators;
 import com.ruoyi.common.utils.spring.SpringUtils;
 import com.ruoyi.system.domain.SysPost;
 import com.ruoyi.system.domain.SysUserPost;
-import com.ruoyi.system.domain.SysUserRole;
+import com.ruoyi.system.api.domain.SysUserRole;
 import com.ruoyi.system.mapper.*;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysDeptService;
@@ -494,8 +494,8 @@ public class SysUserServiceImpl implements ISysUserService {
     /**
      * 根据部门id获取下所有人的userId
      *
-     * @param deptId
-     * @return
+     * @param deptId 部门id
+     * @return userId集合
      */
     @Override
     public List<Long> listUserIdByDeptId(Long deptId) {
@@ -508,7 +508,7 @@ public class SysUserServiceImpl implements ISysUserService {
     /**
      * 获取所有用户列表
      *
-     * @return
+     * @return 用户列表
      */
     @Override
     public List<SysUser> getAllUser() {
@@ -518,8 +518,8 @@ public class SysUserServiceImpl implements ISysUserService {
     /**
      * 根据角色id获取用户列表
      *
-     * @param roleId
-     * @return
+     * @param roleId 角色id
+     * @return 用户列表
      */
     @Override
     public List<SysUser> getUserListByRoleId(String roleId) {
@@ -529,8 +529,8 @@ public class SysUserServiceImpl implements ISysUserService {
     /**
      * 根据部门id获取下所有人的userId
      *
-     * @param userIds
-     * @return
+     * @param userIds 用户id集合
+     * @return 用户列表
      */
     @Override
     public List<SysUser> selectSysUserByUserIdList(long[] userIds) {

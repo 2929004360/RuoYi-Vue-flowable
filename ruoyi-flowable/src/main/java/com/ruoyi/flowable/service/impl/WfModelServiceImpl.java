@@ -26,8 +26,8 @@ import com.ruoyi.flowable.utils.IdWorker;
 import com.ruoyi.flowable.utils.JsonUtils;
 import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.flowable.utils.StringUtils;
-import com.ruoyi.system.service.ISysDeptService;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.api.service.ISysDeptServiceApi;
+import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.Process;
@@ -81,11 +81,11 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
 
     @Lazy
     @Autowired
-    private ISysUserService sysUserService;
+    private ISysUserServiceApi userServiceApi;
 
     @Lazy
     @Autowired
-    private ISysDeptService sysDeptService;
+    private ISysDeptServiceApi deptServiceApi;
 
     @Lazy
     @Autowired
@@ -111,7 +111,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
             modelQuery.modelKey(modelBo.getModelKey());
         }
         if (StringUtils.isNotBlank(modelBo.getModelName())) {
-            modelQuery.modelNameLike("%" + modelBo.getModelName() + "%" );
+            modelQuery.modelNameLike("%" + modelBo.getModelName() + "%");
         }
         if (StringUtils.isNotBlank(modelBo.getCategory())) {
             modelQuery.modelCategory(modelBo.getCategory());
@@ -162,7 +162,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
             modelQuery.modelKey(modelBo.getModelKey());
         }
         if (StringUtils.isNotBlank(modelBo.getModelName())) {
-            modelQuery.modelNameLike("%" + modelBo.getModelName() + "%" );
+            modelQuery.modelNameLike("%" + modelBo.getModelName() + "%");
         }
         if (StringUtils.isNotBlank(modelBo.getCategory())) {
             modelQuery.modelCategory(modelBo.getCategory());
@@ -227,7 +227,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 获取流程模型
         Model model = repositoryService.getModel(modelId);
         if (ObjectUtil.isNull(model)) {
-            throw new RuntimeException("流程模型不存在！" );
+            throw new RuntimeException("流程模型不存在！");
         }
         // 获取流程图
         String bpmnXml = queryBpmnXmlById(modelId);
@@ -262,19 +262,19 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         permission.setModelId(modelId);
         permission.setType(PermissionEnum.USER_PERMISSION.getCode());
         List<Long> permissionIdList = new ArrayList<>();
-        if (!SecurityUtils.hasRole("admin" )) {
+        if (!SecurityUtils.hasRole("admin")) {
             //获取当前登录用户
             SysUser sysUser = SecurityUtils.getLoginUser().getUser();
-            permissionIdList = sysUserService.listUserIdByDeptId(sysUser.getDeptId());
+            permissionIdList = userServiceApi.listUserIdByDeptId(sysUser.getDeptId());
         }
         modelVo.setSelectUserList(wfModelPermissionService.selectWfModelPermissionList(permission, permissionIdList));
 
 
         permission.setType(PermissionEnum.DEPT_PERMISSION.getCode());
-        if (!SecurityUtils.hasRole("admin" )) {
+        if (!SecurityUtils.hasRole("admin")) {
             //获取当前登录用户
             SysUser sysUser = SecurityUtils.getLoginUser().getUser();
-            List<Long> deptList = sysDeptService.selectBranchDeptId(sysUser.getDeptId());
+            List<Long> deptList = deptServiceApi.selectBranchDeptId(sysUser.getDeptId());
             deptList.add(sysUser.getDeptId());
             permissionIdList = deptList;
         }
@@ -383,7 +383,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 根据模型Key查询模型信息
         Model model = repositoryService.getModel(modelBo.getModelId());
         if (ObjectUtil.isNull(model)) {
-            throw new RuntimeException("流程模型不存在！" );
+            throw new RuntimeException("流程模型不存在！");
         }
         model.setCategory(modelBo.getCategory());
         WfMetaInfoDto metaInfoDto = JsonUtils.parseObject(model.getMetaInfo(), WfMetaInfoDto.class);
@@ -427,29 +427,29 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
      */
     private void checkModel(WfModelBo modelBo, String modelId) {
         if (ObjectUtil.isNull(modelBo.getBpmnXml())) {
-            throw new RuntimeException("请选设计流程模型！" );
+            throw new RuntimeException("请选设计流程模型！");
         }
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(modelBo.getBpmnXml());
         if (ObjectUtil.isEmpty(bpmnModel)) {
-            throw new RuntimeException("获取模型设计失败！" );
+            throw new RuntimeException("获取模型设计失败！");
         }
 
         // 获取开始节点
         StartEvent startEvent = ModelUtils.getStartEvent(bpmnModel);
         if (ObjectUtil.isNull(startEvent)) {
-            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！" );
+            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！");
         }
         if (FormType.PROCESS.getType().equals(modelBo.getFormType())) {
             // 获取开始节点配置的表单Key
             if (StrUtil.isBlank(startEvent.getFormKey())) {
-                throw new RuntimeException("请配置流程表单" );
+                throw new RuntimeException("请配置流程表单");
             }
         }
 
         //查看开始节点的后一个任务节点出口
         List<SequenceFlow> outgoingFlows = startEvent.getOutgoingFlows();
         if (Objects.isNull(outgoingFlows)) {
-            throw new RuntimeException("导入失败，流程配置错误！" );
+            throw new RuntimeException("导入失败，流程配置错误！");
         }
 
         //遍历返回下一个节点信息
@@ -488,26 +488,26 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 查询模型信息
         Model model = repositoryService.getModel(modelBo.getModelId());
         if (ObjectUtil.isNull(model)) {
-            throw new RuntimeException("流程模型不存在！" );
+            throw new RuntimeException("流程模型不存在！");
         }
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(modelBo.getBpmnXml());
         if (ObjectUtil.isEmpty(bpmnModel)) {
-            throw new RuntimeException("获取模型设计失败！" );
+            throw new RuntimeException("获取模型设计失败！");
         }
 //        String processName = bpmnModel.getMainProcess().getName();
         // 获取开始节点
         StartEvent startEvent = ModelUtils.getStartEvent(bpmnModel);
         if (ObjectUtil.isNull(startEvent)) {
-            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！" );
+            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！");
         }
         // 获取开始节点配置的表单Key
         if (StrUtil.isBlank(startEvent.getFormKey())) {
-            throw new RuntimeException("请配置流程表单" );
+            throw new RuntimeException("请配置流程表单");
         }
         //查看开始节点的后一个任务节点出口
         List<SequenceFlow> outgoingFlows = startEvent.getOutgoingFlows();
         if (Objects.isNull(outgoingFlows)) {
-            throw new RuntimeException("导入失败，流程配置错误！" );
+            throw new RuntimeException("导入失败，流程配置错误！");
         }
 //        //遍历返回下一个节点信息
 //        for (SequenceFlow outgoingFlow : outgoingFlows) {
@@ -548,11 +548,11 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 获取流程模型
         Model model = repositoryService.getModel(modelId);
         if (ObjectUtil.isNull(model)) {
-            throw new RuntimeException("流程模型不存在！" );
+            throw new RuntimeException("流程模型不存在！");
         }
         Integer latestVersion = repositoryService.createModelQuery().modelKey(model.getKey()).latestVersion().singleResult().getVersion();
         if (model.getVersion().equals(latestVersion)) {
-            throw new RuntimeException("当前版本已是最新版！" );
+            throw new RuntimeException("当前版本已是最新版！");
         }
         // 获取 BPMN XML
         byte[] bpmnBytes = repositoryService.getModelEditorSource(modelId);
@@ -574,7 +574,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         for (String id : ids) {
             Model model = repositoryService.getModel(id);
             if (ObjectUtil.isNull(model)) {
-                throw new RuntimeException("流程模型不存在！" );
+                throw new RuntimeException("流程模型不存在！");
             }
             repositoryService.deleteModel(id);
             // 禁用流程定义
@@ -633,12 +633,12 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 获取流程模型
         Model model = repositoryService.getModel(modelId);
         if (ObjectUtil.isNull(model)) {
-            throw new RuntimeException("流程模型不存在！" );
+            throw new RuntimeException("流程模型不存在！");
         }
         // 获取流程图
         byte[] bpmnBytes = repositoryService.getModelEditorSource(modelId);
         if (ArrayUtil.isEmpty(bpmnBytes)) {
-            throw new RuntimeException("请先设计流程图！" );
+            throw new RuntimeException("请先设计流程图！");
         }
         String bpmnXml = StringUtils.toEncodedString(bpmnBytes, StandardCharsets.UTF_8);
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXml);
@@ -692,14 +692,14 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
     public List<WfModelVo> selectList(WfModelBo modelBo) {
         List<WfModelVo> list = new ArrayList<>();
         List<ActReModel> actReModelList;
-        if (SecurityUtils.hasRole("admin" )) {
+        if (SecurityUtils.hasRole("admin")) {
             actReModelList = wfModelMapper.selectList(modelBo);
         } else {
             SysUser sysUser = SecurityUtils.getLoginUser().getUser();
-            List<Long> userIdList = sysUserService.listUserIdByDeptId(sysUser.getDeptId());
+            List<Long> userIdList = userServiceApi.listUserIdByDeptId(sysUser.getDeptId());
             List<Long> deptIdList;
 
-            deptIdList = sysDeptService.selectBranchDeptId(sysUser.getDeptId());
+            deptIdList = deptServiceApi.selectBranchDeptId(sysUser.getDeptId());
             deptIdList.add(sysUser.getDeptId());
 
             actReModelList = wfModelMapper.selectListVo(modelBo, userIdList, deptIdList);

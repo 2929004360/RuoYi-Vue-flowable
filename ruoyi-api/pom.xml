@@ -19,5 +19,6 @@
     <modules>
         <module>ruoyi-flowable-api</module>
         <module>ruoyi-work-api</module>
+        <module>ruoyi-system-api</module>
     </modules>
 </project>

@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.toolkit.SimpleQuery;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.flowable.constant.ProcessConstants;
-import com.ruoyi.system.domain.SysUserRole;
+import com.ruoyi.system.api.domain.SysUserRole;
 import lombok.AllArgsConstructor;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.UserTask;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author fengcheng
  */
 @AllArgsConstructor
-@Component("multiInstanceHandler" )
+@Component("multiInstanceHandler")
 public class MultiInstanceHandler {
 
     /**

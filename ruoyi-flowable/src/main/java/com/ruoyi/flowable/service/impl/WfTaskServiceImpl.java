@@ -9,15 +9,15 @@ import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.flowable.api.domain.bo.WfTaskBo;
 import com.ruoyi.flowable.constant.ProcessConstants;
 import com.ruoyi.flowable.constant.TaskConstants;
-import com.ruoyi.flowable.api.domain.bo.WfTaskBo;
 import com.ruoyi.flowable.domain.msg.MessageSendWhenTaskCreatedReq;
 import com.ruoyi.flowable.domain.vo.WfUserTaskVo;
 import com.ruoyi.flowable.enums.FlowComment;
-import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.CustomProcessDiagramGenerator;
 import com.ruoyi.flowable.flow.FlowableUtils;
@@ -28,7 +28,7 @@ import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.flowable.utils.NumberUtils;
 import com.ruoyi.flowable.utils.StringUtils;
 import com.ruoyi.flowable.utils.TaskUtils;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskService {
 
-    private final ISysUserService sysUserService;
+    private final ISysUserServiceApi userServiceApi;
 
     private final IWfCopyService copyService;
 
@@ -355,7 +355,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                         //collect_username转换成realname
                         List<String> newusername = new ArrayList<String>();
                         for (Long oldUser : collectUserIdList) {
-                            SysUser sysUser = sysUserService.selectUserById(oldUser);
+                            SysUser sysUser = userServiceApi.selectUserById(oldUser);
                             newusername.add(sysUser.getNickName());
                         }
 
@@ -424,7 +424,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                 sysUser.setUserId(Long.valueOf(startUserId));
                 return Lists.newArrayList(sysUser);
             } else {
-                SysUser userByUsername = sysUserService.selectUserById(Long.parseLong(assignee));
+                SysUser userByUsername = userServiceApi.selectUserById(Long.parseLong(assignee));
                 return Lists.newArrayList(userByUsername);
             }
 
@@ -432,7 +432,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         List<String> candidateUsers = userTask.getCandidateUsers();
         if (CollUtil.isNotEmpty(candidateUsers)) {
             // 指定多人
-            List<SysUser> list = sysUserService.getAllUser();
+            List<SysUser> list = userServiceApi.getAllUser();
             return list.stream().filter(o -> candidateUsers.contains(String.valueOf(o.getUserId()))).collect(Collectors.toList());
         }
         List<String> candidateGroups = userTask.getCandidateGroups();
@@ -440,7 +440,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             //    指定多组
             List<SysUser> userList = Lists.newArrayList();
             for (String candidateGroup : candidateGroups) {
-                List<SysUser> usersByRoleId = sysUserService.getUserListByRoleId(candidateGroup);
+                List<SysUser> usersByRoleId = userServiceApi.getUserListByRoleId(candidateGroup);
                 userList.addAll(usersByRoleId);
             }
             return userList;
@@ -602,7 +602,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             throw new ServiceException("获取任务失败！");
         }
         StringBuilder commentBuilder = new StringBuilder(SecurityUtils.getLoginUser().getUser().getNickName()).append("->");
-        SysUser sysUser = sysUserService.selectUserById(Long.parseLong(bo.getUserId()));
+        SysUser sysUser = userServiceApi.selectUserById(Long.parseLong(bo.getUserId()));
         String nickName = sysUser.getNickName();
         if (StringUtils.isNotBlank(nickName)) {
             commentBuilder.append(nickName);
@@ -646,7 +646,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             throw new ServiceException("获取任务失败！");
         }
         StringBuilder commentBuilder = new StringBuilder(SecurityUtils.getLoginUser().getUser().getNickName()).append("->");
-        SysUser sysUser = sysUserService.selectUserById(Long.parseLong(bo.getUserId()));
+        SysUser sysUser = userServiceApi.selectUserById(Long.parseLong(bo.getUserId()));
         String nickName = sysUser.getNickName();
         if (StringUtils.isNotBlank(nickName)) {
             commentBuilder.append(nickName);
@@ -878,7 +878,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         String userName = String.valueOf(SecurityUtils.getUserId());
         String nickName = SecurityUtils.getLoginUser().getUser().getNickName();
         String[] userIds = bo.getAddSignUsers().split(",");
-        List<SysUser> sysUserList = sysUserService.selectSysUserByUserIdList(Arrays.stream(userIds).mapToLong(Long::parseLong).toArray());
+        List<SysUser> sysUserList = userServiceApi.selectSysUserByUserIdList(Arrays.stream(userIds).mapToLong(Long::parseLong).toArray());
         String nick = StrUtil.join(",", sysUserList.stream().map(SysUser::getNickName).collect(Collectors.toList()));
         TaskEntityImpl taskEntity = (TaskEntityImpl) taskService.createTaskQuery().taskId(bo.getTaskId()).singleResult();
         if (taskEntity != null) {
@@ -923,7 +923,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         //遍历要加签的人
         assigneeList.forEach(assignee -> {
             //获取加签人名称
-            String assigneeName = sysUserService.selectUserById(Long.valueOf(assignee)).getNickName();
+            String assigneeName = userServiceApi.selectUserById(Long.valueOf(assignee)).getNickName();
             assigneeNameList.add(assigneeName);
             //定义参数
             Map<String, Object> assigneeVariables = new HashMap<String, Object>(16);
@@ -946,7 +946,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         String type = FlowComment.DSLJQ.getType();
 
         if (ObjectUtil.isNotNull(bo.getParentTaskId())) {
-            List<SysUser> sysUserList = sysUserService.selectSysUserByUserIdList(Arrays.stream(userIds).mapToLong(Long::parseLong).toArray());
+            List<SysUser> sysUserList = userServiceApi.selectSysUserByUserIdList(Arrays.stream(userIds).mapToLong(Long::parseLong).toArray());
             String nick = StrUtil.join(",", sysUserList.stream().map(SysUser::getNickName).collect(Collectors.toList()));
             taskService.addComment(task.getParentTaskId(), processInstanceId, type, name + "加签原因加签人员【" + nick + "】:" + bo.getComment());
         } else {
