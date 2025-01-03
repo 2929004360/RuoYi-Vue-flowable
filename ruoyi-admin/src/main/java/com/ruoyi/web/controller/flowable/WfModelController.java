@@ -103,9 +103,8 @@ public class WfModelController extends BaseController {
     @PreAuthorize("@ss.hasPermi('workflow:model:add')")
     @Log(title = "流程模型", businessType = BusinessType.INSERT)
     @PostMapping
-    public R<Void> add(@RequestBody WfModelBo modelBo) {
-        modelService.insertModel(modelBo);
-        return R.ok();
+    public R<String> add(@RequestBody WfModelBo modelBo) {
+        return R.ok(modelService.insertModel(modelBo));
     }
 
     /**

@@ -12,7 +12,8 @@
       </div>
       <div style="flex: 1;text-align: right;display: flex;justify-content: flex-end;">
         <el-button type="primary" icon="el-icon-check" round size="mini" @click="save">保存</el-button>
-        <!--        <el-button type="primary" icon="el-icon-check" round size="mini">部署</el-button>-->
+        <el-button type="primary" icon="el-icon-folder-opened" round size="mini" @click="saveAndDeploy">保存并部署
+        </el-button>
       </div>
     </div>
 
@@ -221,7 +222,7 @@ import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import {listDirectoryMenu} from "@/api/system/menu";
 import {queryList} from "@/api/workflow/form";
 import ProcessDesigner from '@/components/ProcessDesigner';
-import {addModel} from "@/api/workflow/model";
+import {addModel, deployModel} from "@/api/workflow/model";
 import {getWfFlowMenuInfo} from "@/api/workflow/flowMenu";
 import {listWfModelTemplateVo} from "@/api/workflow/wfModelTemplate";
 
@@ -286,7 +287,9 @@ export default {
       selectUserList: [],
       selectDeptList: [],
 
-      WfModelTemplateList: []
+      WfModelTemplateList: [],
+
+      loading: {}
     };
   },
   created() {
@@ -507,6 +510,52 @@ export default {
             }
           });
         }
+      })
+    },
+    saveAndDeploy() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          this.loading = this.$loading({
+            lock: true,
+            text: '保存并部署中...',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)'
+          });
+
+          if (Array.isArray(this.form.menuId)) {
+            this.form.menuId = this.form.menuId.join(',')
+          }
+          if (this.form.formType === '0') {
+            this.$delete(this.form, 'menuId');
+            this.$delete(this.form, 'menuName');
+          } else {
+            this.$delete(this.form, 'formId');
+            this.$delete(this.form, 'formName');
+          }
+
+          if (this.form.processConfig === '2') {
+            this.$delete(this.form, 'modelTemplateId');
+          }
+
+          addModel(this.form).then(response => {
+            this.handleDeploy(response.data)
+          }).catch(() => {
+            if (this.form.menuId && typeof (this.form.menuId) === 'string') {
+              this.form.menuId = this.form.menuId.split(',')
+            }
+          });
+        }
+      })
+    },
+    /** 部署流程 */
+    handleDeploy(modelId) {
+      deployModel({
+        modelId: modelId
+      }).then(response => {
+        this.$modal.msgSuccess(response.msg);
+        this.goBack();
+      }).finally(() => {
+        this.loading.close();
       })
     },
   }

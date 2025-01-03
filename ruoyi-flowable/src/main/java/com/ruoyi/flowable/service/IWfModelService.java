@@ -43,8 +43,9 @@ public interface IWfModelService {
      * 新增模型信息
      *
      * @param modelBo 流程模型对象
+     * @return 模型id
      */
-    void insertModel(WfModelBo modelBo);
+    String insertModel(WfModelBo modelBo);
 
     /**
      * 修改模型信息

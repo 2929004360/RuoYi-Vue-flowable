@@ -51,13 +51,25 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="success"
+          type="primary"
           plain
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
           v-hasPermi="['workflow:model:add']"
         >新增
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="single"
+          @click="handleUpdate"
+          v-hasPermi="['workflow:model:edit']"
+        >修改
         </el-button>
       </el-col>
       <el-col :span="1.5">
@@ -143,15 +155,15 @@
             v-hasPermi="['workflow:model:edit']"
           >修改
           </el-button>
-          <el-button
-            type="text"
-            size="mini"
-            icon="el-icon-brush"
-            @click="handleDesigner(scope.row)"
-            v-if="scope.row.processConfig === '2'"
-            v-hasPermi="['workflow:model:designer']"
-          >BPMN设计
-          </el-button>
+<!--          <el-button-->
+<!--            type="text"-->
+<!--            size="mini"-->
+<!--            icon="el-icon-brush"-->
+<!--            @click="handleDesigner(scope.row)"-->
+<!--            v-if="scope.row.processConfig === '2'"-->
+<!--            v-hasPermi="['workflow:model:designer']"-->
+<!--          >BPMN设计-->
+<!--          </el-button>-->
           <!--          <el-button-->
           <!--            type="text"-->
           <!--            size="mini"-->
@@ -179,13 +191,13 @@
                 v-hasPermi="['workflow:model:query']"
               >流程图
               </el-dropdown-item>
-              <el-dropdown-item
-                icon="el-icon-price-tag"
-                @click.native="handleHistory(scope.row)"
-                v-hasPermi="['workflow:model:list']"
-                v-if="scope.row.processConfig === '2'"
-              >历史
-              </el-dropdown-item>
+<!--              <el-dropdown-item-->
+<!--                icon="el-icon-price-tag"-->
+<!--                @click.native="handleHistory(scope.row)"-->
+<!--                v-hasPermi="['workflow:model:list']"-->
+<!--                v-if="scope.row.processConfig === '2'"-->
+<!--              >历史-->
+<!--              </el-dropdown-item>-->
               <el-dropdown-item
                 icon="el-icon-delete"
                 @click.native="handleDelete(scope.row)"
@@ -753,7 +765,8 @@ export default {
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.$tab.openPage("修改模型", "/process/updateModel", {modelId: row.modelId});
+      const modelId = row.modelId || this.ids
+      this.$tab.openPage("修改模型", "/process/updateModel", {modelId: modelId});
       // this.reset()
       // this.queryListFun()
       // this.title = "修改流程模型";

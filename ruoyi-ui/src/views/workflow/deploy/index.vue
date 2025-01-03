@@ -1,15 +1,15 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-<!--      <el-form-item label="流程标识" prop="processKey">-->
-<!--        <el-input-->
-<!--          v-model="queryParams.processKey"-->
-<!--          placeholder="请输入流程标识"-->
-<!--          clearable-->
-<!--          size="small"-->
-<!--          @keyup.enter.native="handleQuery"-->
-<!--        />-->
-<!--      </el-form-item>-->
+      <!--      <el-form-item label="流程标识" prop="processKey">-->
+      <!--        <el-input-->
+      <!--          v-model="queryParams.processKey"-->
+      <!--          placeholder="请输入流程标识"-->
+      <!--          clearable-->
+      <!--          size="small"-->
+      <!--          @keyup.enter.native="handleQuery"-->
+      <!--        />-->
+      <!--      </el-form-item>-->
       <el-form-item label="流程名称" prop="processName">
         <el-input
           v-model="queryParams.processName"
@@ -31,8 +31,8 @@
       </el-form-item>
       <el-form-item label="状态" prop="state">
         <el-select v-model="queryParams.state" size="small" filterable clearable placeholder="请选择状态">
-          <el-option :key="1" label="激活" value="active" />
-          <el-option :key="2" label="挂起" value="suspended" />
+          <el-option :key="1" label="激活" value="active"/>
+          <el-option :key="2" label="挂起" value="suspended"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -51,16 +51,17 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['workflow:deploy:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-row :gutter="10" class="mb8">
       <el-table v-loading="loading" fit :data="deployList" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column type="selection" width="55" align="center"/>
         <el-table-column align="center" label="编号" type="index" width="55"/>
-<!--        <el-table-column label="流程标识" align="center" prop="processKey" :show-overflow-tooltip="true" />-->
+        <!--        <el-table-column label="流程标识" align="center" prop="processKey" :show-overflow-tooltip="true" />-->
         <el-table-column label="流程图标" align="center" prop="icon">
           <template slot-scope="scope">
             <image-preview :height="50" v-if="scope.row.icon" :src="scope.row.icon" :width="50"/>
@@ -73,10 +74,10 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="流程分类" align="center" prop="categoryName" :formatter="categoryFormat" />
+        <el-table-column label="流程分类" align="center" prop="categoryName" :formatter="categoryFormat"/>
         <el-table-column label="流程版本" align="center">
           <template slot-scope="scope">
-            <el-tag size="medium" >v{{ scope.row.version }}</el-tag>
+            <el-tag size="medium">v{{ scope.row.version }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" align="center">
@@ -94,14 +95,16 @@
               icon="el-icon-price-tag"
               @click.native="handlePublish(scope.row)"
               v-hasPermi="['workflow:deploy:list']"
-            >版本管理</el-button>
+            >版本管理
+            </el-button>
             <el-button
               type="text"
               size="mini"
               icon="el-icon-delete"
               @click="handleDelete(scope.row)"
               v-hasPermi="['workflow:deploy:remove']"
-            >删除</el-button>
+            >删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -109,14 +112,14 @@
 
     <!-- 流程图 -->
     <el-dialog :title="processView.title" :visible.sync="processView.open" width="70%" append-to-body>
-      <process-viewer :key="`designer-${processView.index}`" :xml="processView.xmlData" :style="{height: '700px'}" />
+      <process-viewer :key="`designer-${processView.index}`" :xml="processView.xmlData" :style="{height: '700px'}"/>
     </el-dialog>
 
     <!-- 版本管理 -->
     <el-dialog title="版本管理" :visible.sync="publish.open" width="50%" append-to-body>
       <el-table v-loading="publish.loading" :data="publish.dataList">
-        <el-table-column label="流程标识" align="center" prop="processKey" :show-overflow-tooltip="true" />
-        <el-table-column label="流程名称" align="center" :show-overflow-tooltip="true">
+        <el-table-column label="流程标识" align="center" prop="processKey"/>
+        <el-table-column label="流程名称" align="center">
           <template slot-scope="scope">
             <el-button type="text" @click="handleProcessView(scope.row)">
               <span>{{ scope.row.processName }}</span>
@@ -125,7 +128,7 @@
         </el-table-column>
         <el-table-column label="流程版本" align="center">
           <template slot-scope="scope">
-            <el-tag size="medium" >v{{ scope.row.version }}</el-tag>
+            <el-tag size="medium">v{{ scope.row.version }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" align="center">
@@ -143,7 +146,8 @@
               v-if="!scope.row.suspended"
               @click.native="handleChangeState(scope.row, 'suspended')"
               v-hasPermi="['workflow:deploy:state']"
-            >挂起</el-button>
+            >挂起
+            </el-button>
             <el-button
               type="text"
               size="mini"
@@ -151,14 +155,16 @@
               v-if="scope.row.suspended"
               @click.native="handleChangeState(scope.row, 'active')"
               v-hasPermi="['workflow:deploy:state']"
-            >激活</el-button>
+            >激活
+            </el-button>
             <el-button
               type="text"
               size="mini"
               icon="el-icon-delete"
               @click="handleDelete(scope.row)"
               v-hasPermi="['workflow:deploy:remove']"
-            >删除</el-button>
+            >删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -175,8 +181,8 @@
 </template>
 
 <script>
-import { listAllCategory } from '@/api/workflow/category'
-import { listDeploy, listPublish, getBpmnXml, changeState, delDeploy } from '@/api/workflow/deploy'
+import {listAllCategory} from '@/api/workflow/category'
+import {changeState, delDeploy, getBpmnXml, listDeploy, listPublish} from '@/api/workflow/deploy'
 import ProcessViewer from '@/components/ProcessViewer'
 
 export default {
@@ -211,7 +217,7 @@ export default {
         title: '',
         open: false,
         index: undefined,
-        xmlData:"",
+        xmlData: "",
       },
       publish: {
         open: false,
@@ -242,7 +248,7 @@ export default {
         this.deployList = response.data;
         this.loading = false;
 
-        if(this.publishQueryParams.processKey){
+        if (this.publishQueryParams.processKey) {
           this.getPublishList();
         }
       });

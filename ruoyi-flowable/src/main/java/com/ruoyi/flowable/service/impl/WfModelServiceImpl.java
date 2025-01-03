@@ -292,10 +292,11 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
      * 新增模型信息
      *
      * @param modelBo 流程模型对象
+     * @return 模型id
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void insertModel(WfModelBo modelBo) {
+    public String insertModel(WfModelBo modelBo) {
         // 创建一个新的模型对象
         Model model = repositoryService.newModel();
         // 设置模型名称
@@ -332,6 +333,8 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
             wfModelAssociationTemplate.setModelTemplateId(modelBo.getModelTemplateId());
             wfModelAssociationTemplateService.insertWfModelAssociationTemplate(wfModelAssociationTemplate);
         }
+
+        return model.getId();
     }
 
     /**
