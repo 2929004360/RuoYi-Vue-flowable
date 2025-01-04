@@ -162,3 +162,14 @@ logging:
   level:
     org.flowable.engine.impl.persistence.entity.*: debug
     org.flowable.task.service.impl.persistence.entity.*: debug
+
+
+management:
+  endpoint:
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "shutdown"
+      base-path: /monitor
