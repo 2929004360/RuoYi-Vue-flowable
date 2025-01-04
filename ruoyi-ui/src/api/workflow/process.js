@@ -96,6 +96,15 @@ export function listCopyProcess(query) {
   })
 }
 
+// 查询流程我的抄送列表
+export function listMyCopyProcess(query) {
+  return request({
+    url: '/flowable/workflow/process/myCopyList',
+    method: 'get',
+    params: query
+  })
+}
+
 // 取消申请
 export function stopProcess(data) {
   return request({

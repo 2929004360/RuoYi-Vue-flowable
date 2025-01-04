@@ -38,7 +38,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/flowable/workflow/process" )
+@RequestMapping("/flowable/workflow/process")
 @Validated
 public class WfProcessController extends BaseController {
 
@@ -48,8 +48,8 @@ public class WfProcessController extends BaseController {
     /**
      * 根据菜单id获取可发起列表
      */
-    @GetMapping(value = "/getStartList/{menuId}" )
-    public R<List<WfDefinitionVo>> getStartList(@NotBlank(message = "menuId不能为空" ) @PathVariable("menuId" ) String menuId) {
+    @GetMapping(value = "/getStartList/{menuId}")
+    public R<List<WfDefinitionVo>> getStartList(@NotBlank(message = "menuId不能为空") @PathVariable("menuId") String menuId) {
         List<WfDefinitionVo> list = processService.getStartList(menuId);
         return R.ok(list);
     }
@@ -59,7 +59,7 @@ public class WfProcessController extends BaseController {
      *
      * @param processQuery 查询参数
      */
-    @GetMapping(value = "/list" )
+    @GetMapping(value = "/list")
     @PreAuthorize("@ss.hasPermi('workflow:process:startList')")
     public R<List<WfDefinitionVo>> startProcessList(ProcessQuery processQuery) {
         return R.ok(processService.selectPageStartProcessList(processQuery));
@@ -69,7 +69,7 @@ public class WfProcessController extends BaseController {
      * 我拥有的流程
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:ownList')")
-    @GetMapping(value = "/ownList" )
+    @GetMapping(value = "/ownList")
     public TableDataInfo<WfTaskVo> ownProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
         return processService.selectPageOwnProcessList(processQuery, pageQuery);
     }
@@ -78,7 +78,7 @@ public class WfProcessController extends BaseController {
      * 获取待办列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:todoList')")
-    @GetMapping(value = "/todoList" )
+    @GetMapping(value = "/todoList")
     public TableDataInfo<WfTaskVo> todoProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
         return processService.selectPageTodoProcessList(processQuery, pageQuery);
     }
@@ -90,7 +90,7 @@ public class WfProcessController extends BaseController {
      * @param pageQuery    分页参数
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:claimList')")
-    @GetMapping(value = "/claimList" )
+    @GetMapping(value = "/claimList")
     public TableDataInfo<WfTaskVo> claimProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
         return processService.selectPageClaimProcessList(processQuery, pageQuery);
     }
@@ -101,9 +101,24 @@ public class WfProcessController extends BaseController {
      * @param pageQuery 分页参数
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:finishedList')")
-    @GetMapping(value = "/finishedList" )
+    @GetMapping(value = "/finishedList")
     public TableDataInfo<WfTaskVo> finishedProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
         return processService.selectPageFinishedProcessList(processQuery, pageQuery);
+    }
+
+    /**
+     * 获取我的抄送列表
+     *
+     * @param copyBo    流程抄送对象
+     * @param pageQuery 分页参数
+     */
+    @PreAuthorize("@ss.hasPermi('workflow:process:myCopyList')")
+    @GetMapping(value = "/myCopyList")
+    public TableDataInfo<WfCopyVo> myCopyProcessList(WfCopyBo copyBo, PageQuery pageQuery) {
+        if (!SecurityUtils.hasRole("admin")) {
+            copyBo.setOriginatorId(SecurityUtils.getUserId());
+        }
+        return copyService.selectPageList(copyBo, pageQuery);
     }
 
     /**
@@ -113,9 +128,9 @@ public class WfProcessController extends BaseController {
      * @param pageQuery 分页参数
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:copyList')")
-    @GetMapping(value = "/copyList" )
+    @GetMapping(value = "/copyList")
     public TableDataInfo<WfCopyVo> copyProcessList(WfCopyBo copyBo, PageQuery pageQuery) {
-        if (!SecurityUtils.hasRole("admin" )) {
+        if (!SecurityUtils.hasRole("admin")) {
             copyBo.setUserId(SecurityUtils.getUserId());
         }
         return copyService.selectPageList(copyBo, pageQuery);
@@ -127,8 +142,8 @@ public class WfProcessController extends BaseController {
      * @param copyIds 抄送id
      * @return
      */
-    @PreAuthorize("@ss.hasPermi('workflow:process:removeCopy')")
-    @DeleteMapping(value = "/delCopy/{copyIds}" )
+    @PreAuthorize("@ss.hasAnyPermi('workflow:process:removeCopy,workflow:process:removeMyCopy')")
+    @DeleteMapping(value = "/delCopy/{copyIds}")
     public R<Void> deleteCopy(@PathVariable String[] copyIds) {
         copyService.deleteCopy(copyIds);
         return R.ok();
@@ -138,68 +153,85 @@ public class WfProcessController extends BaseController {
      * 导出我拥有流程列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:ownExport')")
-    @Log(title = "我拥有流程" , businessType = BusinessType.EXPORT)
-    @PostMapping("/ownExport" )
+    @Log(title = "我拥有流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/ownExport")
     public void ownExport(@Validated ProcessQuery processQuery, HttpServletResponse response) {
         List<WfTaskVo> list = processService.selectOwnProcessList(processQuery);
         List<WfOwnTaskExportVo> listVo = BeanUtil.copyToList(list, WfOwnTaskExportVo.class);
         for (WfOwnTaskExportVo exportVo : listVo) {
-            exportVo.setStatus(ObjectUtil.isNull(exportVo.getFinishTime()) ? "进行中" : "已完成" );
+            exportVo.setStatus(ObjectUtil.isNull(exportVo.getFinishTime()) ? "进行中" : "已完成");
         }
         ExcelUtil<WfOwnTaskExportVo> util = new ExcelUtil<WfOwnTaskExportVo>(WfOwnTaskExportVo.class);
-        util.exportExcel(response, listVo, "我拥有流程" );
+        util.exportExcel(response, listVo, "我拥有流程");
     }
 
     /**
      * 导出待办流程列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:todoExport')")
-    @Log(title = "待办流程" , businessType = BusinessType.EXPORT)
-    @PostMapping("/todoExport" )
+    @Log(title = "待办流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/todoExport")
     public void todoExport(@Validated ProcessQuery processQuery, HttpServletResponse response) {
         List<WfTaskVo> list = processService.selectTodoProcessList(processQuery);
         List<WfTodoTaskExportVo> listVo = BeanUtil.copyToList(list, WfTodoTaskExportVo.class);
         ExcelUtil<WfTodoTaskExportVo> util = new ExcelUtil<WfTodoTaskExportVo>(WfTodoTaskExportVo.class);
-        util.exportExcel(response, listVo, "待办流程" );
+        util.exportExcel(response, listVo, "待办流程");
     }
 
     /**
      * 导出待签流程列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:claimExport')")
-    @Log(title = "待签流程" , businessType = BusinessType.EXPORT)
-    @PostMapping("/claimExport" )
+    @Log(title = "待签流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/claimExport")
     public void claimExport(@Validated ProcessQuery processQuery, HttpServletResponse response) {
         List<WfTaskVo> list = processService.selectClaimProcessList(processQuery);
         List<WfClaimTaskExportVo> listVo = BeanUtil.copyToList(list, WfClaimTaskExportVo.class);
         ExcelUtil<WfClaimTaskExportVo> util = new ExcelUtil<WfClaimTaskExportVo>(WfClaimTaskExportVo.class);
-        util.exportExcel(response, listVo, "待签流程" );
+        util.exportExcel(response, listVo, "待签流程");
     }
 
     /**
      * 导出已办流程列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:finishedExport')")
-    @Log(title = "已办流程" , businessType = BusinessType.EXPORT)
-    @PostMapping("/finishedExport" )
+    @Log(title = "已办流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/finishedExport")
     public void finishedExport(@Validated ProcessQuery processQuery, HttpServletResponse response) {
         List<WfTaskVo> list = processService.selectFinishedProcessList(processQuery);
         List<WfFinishedTaskExportVo> listVo = BeanUtil.copyToList(list, WfFinishedTaskExportVo.class);
         ExcelUtil<WfFinishedTaskExportVo> util = new ExcelUtil<WfFinishedTaskExportVo>(WfFinishedTaskExportVo.class);
-        util.exportExcel(response, listVo, "已办流程" );
+        util.exportExcel(response, listVo, "已办流程");
     }
 
     /**
      * 导出抄送流程列表
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:copyExport')")
-    @Log(title = "抄送流程" , businessType = BusinessType.EXPORT)
-    @PostMapping("/copyExport" )
+    @Log(title = "抄送流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/copyExport")
     public void copyExport(WfCopyBo copyBo, HttpServletResponse response) {
-        copyBo.setUserId(SecurityUtils.getUserId());
+        if (!SecurityUtils.hasRole("admin")) {
+            copyBo.setUserId(SecurityUtils.getUserId());
+        }
         List<WfCopyVo> list = copyService.selectList(copyBo);
         ExcelUtil<WfCopyVo> util = new ExcelUtil<WfCopyVo>(WfCopyVo.class);
-        util.exportExcel(response, list, "抄送流程" );
+        util.exportExcel(response, list, "抄送流程");
+    }
+
+    /**
+     * 导出我的抄送流程列表
+     */
+    @PreAuthorize("@ss.hasPermi('workflow:process:myCopyExport')")
+    @Log(title = "抄送流程", businessType = BusinessType.EXPORT)
+    @PostMapping("/myCopyExport")
+    public void myCopyExport(WfCopyBo copyBo, HttpServletResponse response) {
+        if (!SecurityUtils.hasRole("admin")) {
+            copyBo.setOriginatorId(SecurityUtils.getUserId());
+        }
+        List<WfCopyVo> list = copyService.selectList(copyBo);
+        ExcelUtil<WfCopyVo> util = new ExcelUtil<WfCopyVo>(WfCopyVo.class);
+        util.exportExcel(response, list, "抄送流程");
     }
 
     /**
@@ -208,11 +240,11 @@ public class WfProcessController extends BaseController {
      * @param definitionId 流程定义id
      * @param deployId     流程部署id
      */
-    @GetMapping("/getProcessForm" )
+    @GetMapping("/getProcessForm")
     @PreAuthorize("@ss.hasPermi('workflow:process:start')")
-    public R<?> getForm(@RequestParam(value = "definitionId" ) String definitionId,
-                        @RequestParam(value = "deployId" ) String deployId,
-                        @RequestParam(value = "procInsId" , required = false) String procInsId) {
+    public R<?> getForm(@RequestParam(value = "definitionId") String definitionId,
+                        @RequestParam(value = "deployId") String deployId,
+                        @RequestParam(value = "procInsId", required = false) String procInsId) {
         return R.ok(processService.selectFormContent(definitionId, deployId, procInsId));
     }
 
@@ -223,10 +255,10 @@ public class WfProcessController extends BaseController {
      * @param variables    变量集合,json对象
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:start')")
-    @PostMapping("/start/{processDefId}" )
-    public R<String> start(@PathVariable(value = "processDefId" ) String processDefId, @RequestBody Map<String, Object> variables) {
+    @PostMapping("/start/{processDefId}")
+    public R<String> start(@PathVariable(value = "processDefId") String processDefId, @RequestBody Map<String, Object> variables) {
         processService.startProcessByDefId(processDefId, variables);
-        return R.ok(null, "流程启动成功" );
+        return R.ok(null, "流程启动成功");
     }
 
     /**
@@ -235,10 +267,10 @@ public class WfProcessController extends BaseController {
      * @param resubmitProcess 重新发起
      */
     @PreAuthorize("@ss.hasPermi('workflow:process:start')")
-    @PostMapping("/resubmit" )
+    @PostMapping("/resubmit")
     public R<String> resubmit(@RequestBody ResubmitProcess resubmitProcess) {
         processService.resubmitProcess(resubmitProcess);
-        return R.ok(null, "流程启动成功" );
+        return R.ok(null, "流程启动成功");
     }
 
     /**
@@ -246,7 +278,7 @@ public class WfProcessController extends BaseController {
      *
      * @param instanceIds 流程实例ID串
      */
-    @DeleteMapping("/instance/{instanceIds}" )
+    @DeleteMapping("/instance/{instanceIds}")
     public R<Void> delete(@PathVariable String[] instanceIds) {
         processService.deleteProcessByIds(instanceIds);
         return R.ok();
@@ -257,8 +289,8 @@ public class WfProcessController extends BaseController {
      *
      * @param processDefId 流程定义ID
      */
-    @GetMapping("/bpmnXml/{processDefId}" )
-    public R<String> getBpmnXml(@PathVariable(value = "processDefId" ) String processDefId) {
+    @GetMapping("/bpmnXml/{processDefId}")
+    public R<String> getBpmnXml(@PathVariable(value = "processDefId") String processDefId) {
         return R.ok(processService.queryBpmnXmlById(processDefId), null);
     }
 
@@ -269,8 +301,8 @@ public class WfProcessController extends BaseController {
      * @param taskId    任务ID
      * @param formType  表单类型
      */
-    @GetMapping("/detail" )
-    public R detail(String procInsId, String taskId, @NotNull(message = "表单类型不能为空" ) String formType) {
+    @GetMapping("/detail")
+    public R detail(String procInsId, String taskId, @NotNull(message = "表单类型不能为空") String formType) {
         return R.ok(processService.queryProcessDetail(procInsId, taskId, formType));
     }
 
@@ -279,7 +311,7 @@ public class WfProcessController extends BaseController {
      *
      * @param ddToBpmn
      */
-    @PostMapping("/ddtobpmn" )
+    @PostMapping("/ddtobpmn")
     public R<String> ddToBpmn(@RequestBody DdToBpmn ddToBpmn) {
         return processService.dingdingToBpmn(ddToBpmn);
     }
