@@ -46,6 +46,7 @@
         <guava.version>30.0-jre</guava.version>
         <redisson.version>3.16.2</redisson.version>
         <easyexcel.version>2.2.6</easyexcel.version>
+        <ip2region.version>1.7.2</ip2region.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -354,6 +355,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-websocket</artifactId>
                 <version>${spring-boot.version}</version>
+            </dependency>
+
+            <!-- 离线IP地址定位库 -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
