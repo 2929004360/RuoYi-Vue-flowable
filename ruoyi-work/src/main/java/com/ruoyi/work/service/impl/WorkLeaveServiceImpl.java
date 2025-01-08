@@ -80,7 +80,6 @@ public class WorkLeaveServiceImpl implements IWorkLeaveService {
 
         if (ProcessStatus.RUNNING.getStatus().equals(workLeaveVo.getSchedule())) {
             String processInstanceId = processServiceApi.startProcessByDefId(workLeaveVo.getDefinitionId(), BeanUtil.beanToMap(workLeaveVo, new HashMap<>(16), false, false));
-            processServiceApi.startProcessByDefId(workLeaveVo.getDefinitionId(), BeanUtil.beanToMap(workLeaveVo, new HashMap<>(16), false, false));
             WfBusinessProcess wfBusinessProcess = new WfBusinessProcess();
             wfBusinessProcess.setProcessId(processInstanceId);
             wfBusinessProcess.setBusinessId(String.valueOf(workLeaveVo.getLeaveId()));
