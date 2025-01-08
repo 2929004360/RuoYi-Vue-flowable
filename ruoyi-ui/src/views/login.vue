@@ -53,6 +53,9 @@
           <router-link class="link-type" :to="'/register'">立即注册</router-link>
         </div>
       </el-form-item>
+      <el-form-item>
+        账号/密码：xiaoxin/123456
+      </el-form-item>
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">

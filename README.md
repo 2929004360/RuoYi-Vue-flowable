@@ -1,5 +1,9 @@
 <h4 align="center">基于RuoYi-Vue+Flowable的工作流管理平台</h4>
 
+## 良心开源
+
+* 单租户版本：[RuoYi-Vue-flowable](https://gitee.com/tangwenzhaoaini/RuoYi-Vue-flowable)
+* 多租户版本：[RuoYi-Vue-Flowable-Tenant](https://gitee.com/tangwenzhaoaini/ruo-yi-vue-flowable-tenant)
 
 ## 平台简介
 
@@ -47,9 +51,13 @@
 
 ## 在线体验
 
-- admin/admin123  
+- 单租户版本
+- 演示地址：http://ry.orangepromax.asia/index
+- 账号/密码：xiaoxin/123456
+- 多租户版本
+- 演示地址：http://aa.orangepromax.asia/index
+- 租户/账号/密码：测试有限公司/admin/123456
 
-演示地址：http://ry.orangepromax.asia/index
 
 ## 联系方式
 

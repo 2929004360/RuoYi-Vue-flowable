@@ -243,6 +243,7 @@ public class SysUserController extends BaseController {
     /**
      * 获取用户列表
      */
+    @PreAuthorize("@ss.hasPermi('system:user:list')")
     @GetMapping("/listUserList")
     public AjaxResult listUserList(SysUser user) {
         List<SysUser> list = userService.selectUserList(user);
