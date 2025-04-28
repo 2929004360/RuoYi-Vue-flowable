@@ -1,5 +1,6 @@
 package com.ruoyi.flowable.domain;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class WfDeployForm {
     /**
      * 流程部署主键
      */
+    @TableId(value = "deploy_id")
     private String deployId;
 
     /**

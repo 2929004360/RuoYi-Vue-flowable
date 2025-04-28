@@ -23,5 +23,5 @@ public interface IWfBusinessProcessServiceApi {
      * @param businessId
      * @param type
      */
-    void deleteWfBusinessProcessByBusinessId(String businessId, String code);
+    void deleteWfBusinessProcessByBusinessId(String businessId, String type);
 }

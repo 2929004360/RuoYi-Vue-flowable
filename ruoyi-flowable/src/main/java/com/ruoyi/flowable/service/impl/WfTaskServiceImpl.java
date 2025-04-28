@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.enums.FlowMenuEnum;
 import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -21,16 +22,18 @@ import com.ruoyi.flowable.enums.FlowComment;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.CustomProcessDiagramGenerator;
 import com.ruoyi.flowable.flow.FlowableUtils;
+import com.ruoyi.flowable.handler.BusinessFormDataHandler;
 import com.ruoyi.flowable.mapper.FlowTaskMapper;
 import com.ruoyi.flowable.service.IWfCopyService;
 import com.ruoyi.flowable.service.IWfTaskService;
-import com.ruoyi.flowable.utils.ModelUtils;
-import com.ruoyi.flowable.utils.NumberUtils;
-import com.ruoyi.flowable.utils.StringUtils;
-import com.ruoyi.flowable.utils.TaskUtils;
+import com.ruoyi.flowable.subscription.ApprovalResultTemplate;
+import com.ruoyi.flowable.subscription.PendingApprovalTemplate;
+import com.ruoyi.flowable.utils.*;
+import com.ruoyi.system.api.service.ISysConfigServiceApi;
 import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.error.WxErrorException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.Process;
@@ -57,7 +60,6 @@ import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
@@ -71,6 +73,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional(rollbackFor = Exception.class)
 public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskService {
 
     private final ISysUserServiceApi userServiceApi;
@@ -79,7 +82,15 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
 
     private final FlowTaskMapper flowTaskMapper;
 
-//    private final RemoteSysMessageService remoteSysMessageService;
+    private final BusinessFormDataHandler businessFormDataHandler;
+
+    private final PendingApprovalTemplate pendingApprovalTemplate;
+
+    private final ApprovalResultTemplate approvalResultTemplate;
+
+    private final ISysUserServiceApi sysUserServiceApi;
+
+    private final ISysConfigServiceApi sysConfigServiceApi;
 
     /**
      * 完成任务
@@ -116,8 +127,19 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                 String localScopeValue = ModelUtils.getUserTaskAttributeValue(bpmnModel, task.getTaskDefinitionKey(), ProcessConstants.PROCESS_FORM_LOCAL_SCOPE);
                 boolean localScope = Convert.toBool(localScopeValue, false);
                 taskService.complete(taskBo.getTaskId(), taskBo.getVariables(), localScope);
+
+                String key = sysConfigServiceApi.selectConfigByKey("sys.wechat.notice");
+                if (Boolean.parseBoolean(key)) {
+                    // 发送微信通知
+                    sendingCompleteWxNotice(taskEntity, taskBo);
+                }
             } else {
                 taskService.complete(taskBo.getTaskId());
+                String key = sysConfigServiceApi.selectConfigByKey("sys.wechat.notice");
+                if (Boolean.parseBoolean(key)) {
+                    // 发送微信通知
+                    sendingCompleteWxNotice(taskEntity, taskBo);
+                }
             }
         }
         // 设置任务节点名称
@@ -139,6 +161,36 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 处理抄送用户
         if (!copyService.makeCopy(taskBo)) {
             throw new RuntimeException("抄送任务失败");
+        }
+
+
+        // 获取流程实例
+        HistoricProcessInstance historicProcIns = historyService.createHistoricProcessInstanceQuery().processInstanceId(taskBo.getProcInsId()).includeProcessVariables().singleResult();
+        // 处理业务表单数据
+        businessFormDataHandler.setDataHandle(taskBo, historicProcIns);
+    }
+
+    /**
+     * 发送审批完成微信通知
+     *
+     * @param taskEntity
+     * @param taskBo
+     */
+    private void sendingCompleteWxNotice(TaskEntity taskEntity, WfTaskBo taskBo) {
+        String procInsId = taskEntity.getProcessInstanceId();
+        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(procInsId).singleResult();
+        SysUser startUser = userServiceApi.selectUserById(Long.valueOf(historicProcessInstance.getStartUserId()));
+        String approvalResult = "已通过";
+        String approver = SecurityUtils.getLoginUser().getUser().getNickName();
+        HashMap<String, Object> map = (HashMap<String, Object>) taskEntity.getOriginalPersistentState();
+        String name = map.get("name").toString();
+        String comment = taskBo.getComment();
+        String approvalTime = DateUtils.getTime();
+
+        try {
+            approvalResultTemplate.sending(startUser.getOpenid(), approver, approvalResult, comment, approvalTime, "审批节点：" + name);
+        } catch (WxErrorException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -1046,7 +1098,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
     @Override
     public void taskRefuse(WfTaskBo taskBo) {
         // 当前任务 task
-        Task task = taskService.createTaskQuery().taskId(taskBo.getTaskId()).singleResult();
+        TaskEntityImpl task = (TaskEntityImpl) taskService.createTaskQuery().taskId(taskBo.getTaskId()).singleResult();
         if (ObjectUtil.isNull(task)) {
             throw new RuntimeException("获取任务信息异常！");
         }
@@ -1062,7 +1114,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(task.getProcessDefinitionId()).singleResult();
 
         // 添加审批意见
-        if (ObjectUtil.isNotNull(taskBo.getParentTaskId()) && !StrUtil.isEmpty(taskBo.getParentTaskId()))  {
+        if (ObjectUtil.isNotNull(taskBo.getParentTaskId()) && !StrUtil.isEmpty(taskBo.getParentTaskId())) {
             taskService.addComment(taskBo.getParentTaskId(), taskBo.getProcInsId(), FlowComment.REFUSE.getType(), taskBo.getComment());
         } else {
             taskService.addComment(taskBo.getTaskId(), taskBo.getProcInsId(), FlowComment.REFUSE.getType(), taskBo.getComment());
@@ -1077,9 +1129,39 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         List<Execution> executions = runtimeService.createExecutionQuery().parentId(task.getProcessInstanceId()).list();
         List<String> executionIds = executions.stream().map(Execution::getId).collect(Collectors.toList());
         runtimeService.createChangeActivityStateBuilder().processInstanceId(task.getProcessInstanceId()).moveExecutionsToSingleActivityId(executionIds, endEvent.getId()).changeState();
+
+        String key = sysConfigServiceApi.selectConfigByKey("sys.wechat.notice");
+        if (Boolean.parseBoolean(key)) {
+            // 发送微信通知
+            sendingCompleteWxNotice(task, taskBo);
+        }
         // 处理抄送用户
         if (!copyService.makeCopy(taskBo)) {
             throw new RuntimeException("抄送任务失败");
+        }
+    }
+
+    /**
+     * 发送任务拒绝微信通知
+     *
+     * @param task
+     * @param taskBo
+     */
+    private void sendingTaskRefuseWxNotice(TaskEntityImpl task, WfTaskBo taskBo) {
+        String procInsId = task.getProcessInstanceId();
+        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(procInsId).singleResult();
+        SysUser startUser = userServiceApi.selectUserById(Long.valueOf(historicProcessInstance.getStartUserId()));
+        String approvalResult = "已终止";
+        String approver = SecurityUtils.getLoginUser().getUser().getNickName();
+        HashMap<String, Object> map = (HashMap<String, Object>) task.getOriginalPersistentState();
+        String name = map.get("name").toString();
+        String comment = taskBo.getComment();
+        String approvalTime = DateUtils.getTime();
+
+        try {
+            approvalResultTemplate.sending(startUser.getOpenid(), approver, approvalResult, comment, approvalTime, "审批节点：" + name);
+        } catch (WxErrorException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -1170,41 +1252,63 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
      * @param task 任务实体
      */
     @Override
-    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(rollbackFor = Exception.class)
     public void updateTaskStatusWhenCreated(Task task) {
-        // 获取流程发起人
-        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().includeProcessVariables().processInstanceId(task.getProcessInstanceId()).singleResult();
-        Long startUserId = Long.valueOf(processInstance.getStartUserId());
-//        SysUser startUser = remoteUserService.selectSysUserByUserId(startUserId, SecurityConstants.INNER).getData();
-
         // 获取指定任务审批人
         List<IdentityLink> identityLinksForTask = taskService.getIdentityLinksForTask(task.getId());
+        Map<String, Object> variables = taskService.getVariables(task.getId());
+
+        if (ObjectUtil.isNull(variables.get("businessProcessType"))) {
+            return;
+        }
+        String businessProcessType = variables.get("businessProcessType").toString();
         // 遍历 identityLinksForTask 中的 IdentityLink 对象
-//        for (IdentityLink identityLink : identityLinksForTask) {
-//            // 如果 IdentityLink 的类型是 Candidate
-//            if (IdentityLinkType.CANDIDATE.equals(identityLink.getType())) {
-////                 获取审批人的用户ID
-//                Long userId = Long.valueOf(identityLink.getUserId());
-//                SysUser user = remoteUserService.selectSysUserByUserId(userId, SecurityConstants.INNER).getData();
-//                SysMessageVo sysMessageVo = new SysMessageVo();
-//                sysMessageVo.setUserId(startUserId);
-//                sysMessageVo.setUserName(startUser.getNickName());
-//                sysMessageVo.setTitle("【" + startUser.getNickName() + "】流程待办");
-//                sysMessageVo.setCategory(MessageCategoryConstant.MESSAGE_CATEGORY_1);
-//                sysMessageVo.setRange(MessageRangeConstant.MESSAGE_RANGE_1);
-//                sysMessageVo.setSendingTime(DateUtils.getNowDate());
-//                sysMessageVo.setContent(startUser.getNickName() + "发起" + "【" + processInstance.getProcessDefinitionName() + "】流程待办，请及时处理");
-//                sysMessageVo.setType(MessageTypeConstant.MESSAGE_TYPE_TEXT);
-//                sysMessageVo.setReceiveUserId(userId);
-//                List<SysMessageReceive> sysMessageReceiveList = new ArrayList<>();
-//                SysMessageReceive sysMessageReceive = new SysMessageReceive();
-//                sysMessageReceive.setReceiveId(userId);
-//                sysMessageReceive.setReceive(user.getNickName());
-//                sysMessageReceiveList.add(sysMessageReceive);
-//                sysMessageVo.setSysMessageReceiveList(sysMessageReceiveList);
-//                remoteSysMessageService.addSysMessage(sysMessageVo, SecurityConstants.INNER);
-//            }
-//        }
+        for (IdentityLink identityLink : identityLinksForTask) {
+            // 如果 IdentityLink 的类型是 Candidate
+            if (IdentityLinkType.CANDIDATE.equals(identityLink.getType())) {
+                // 隐患流程
+                if (FlowMenuEnum.RISK_FLOW_MENU.getCode().equals(businessProcessType)) {
+                    if(ObjectUtil.isNotNull(identityLink.getGroupId())){
+                        if (identityLink.getGroupId().contains(TaskConstants.ROLE_GROUP_PREFIX)) {
+                            String roleId = identityLink.getGroupId().replace(TaskConstants.ROLE_GROUP_PREFIX, "");
+                            List<SysUser> userList = sysUserServiceApi.getUserListByRoleId(roleId);
+
+                            for (SysUser sysUser : userList) {
+                                sending(sysUser.getOpenid(), variables);
+                            }
+                            return;
+                        } else if (identityLink.getGroupId().contains(TaskConstants.DEPT_GROUP_PREFIX)) {
+                            String deptId = identityLink.getGroupId().replace(TaskConstants.DEPT_GROUP_PREFIX, "");
+                            List<SysUser> userList = sysUserServiceApi.getUserListByDeptId(Long.parseLong(deptId));
+
+                            for (SysUser sysUser : userList) {
+                                sending(sysUser.getOpenid(), variables);
+                            }
+                            return;
+                        }
+                    } else {
+                        // 获取审批人的用户
+                        SysUser user = userServiceApi.selectUserById(Long.valueOf(identityLink.getUserId()));
+                        sending(user.getOpenid(), variables);
+                    }
+                }
+            }
+        }
+    }
+
+    private void sending(String openid, Map<String, Object> variables) {
+        // 发送微信订阅消息
+        try {
+            pendingApprovalTemplate.sending(openid,
+                    variables.get("deptName").toString(),
+                    variables.get("userName").toString(),
+                    RiskAreaUtils.getHazardAreaNameByData(variables.get("riskArea").toString()),
+                    DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, (Date) variables.get("createTime")),
+                    "进行中"
+            );
+        } catch (WxErrorException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private MessageSendWhenTaskCreatedReq convert(ProcessInstance processInstance, SysUser user, Task task) {

@@ -72,4 +72,15 @@ public class SysUserServiceApiImpl implements ISysUserServiceApi {
     public List<SysUser> getUserListByRoleId(String roleId) {
         return userService.getUserListByRoleId(roleId);
     }
+
+    /**
+     * 根据部门id获取用户列表
+     *
+     * @param deptId
+     * @return
+     */
+    @Override
+    public List<SysUser> getUserListByDeptId(long deptId) {
+        return userService.getUserListByDeptId(deptId);
+    }
 }

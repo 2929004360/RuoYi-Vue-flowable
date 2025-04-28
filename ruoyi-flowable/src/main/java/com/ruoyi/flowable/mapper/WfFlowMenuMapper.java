@@ -17,7 +17,7 @@ public interface WfFlowMenuMapper {
      * @param flowMenuId 流程菜单主键
      * @return 流程菜单
      */
-    public WfFlowMenu selectWfFlowMenuByFlowMenuId(Long flowMenuId);
+    public WfFlowMenu selectWfFlowMenuByFlowMenuId(String flowMenuId);
 
     /**
      * 查询流程菜单列表

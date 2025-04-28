@@ -6,6 +6,7 @@ import com.ruoyi.flowable.api.domain.bo.WfTaskBo;
 import com.ruoyi.flowable.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

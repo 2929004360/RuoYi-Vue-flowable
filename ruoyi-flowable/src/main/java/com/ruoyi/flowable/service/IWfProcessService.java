@@ -154,4 +154,12 @@ public interface IWfProcessService {
      * @param resubmitProcess 重新发起
      */
     void resubmitProcess(ResubmitProcess resubmitProcess);
+
+    /**
+     * 查询流程是否结束
+     *
+     * @param procInsId
+     * @param
+     */
+    boolean processIsCompleted(String procInsId);
 }

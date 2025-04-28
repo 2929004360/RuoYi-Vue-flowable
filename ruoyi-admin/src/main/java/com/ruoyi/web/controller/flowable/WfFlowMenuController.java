@@ -55,7 +55,7 @@ public class WfFlowMenuController extends BaseController {
      */
     @PreAuthorize("@ss.hasPermi('workflow:wfFlowMenu:query')")
     @GetMapping(value = "/{flowMenuId}" )
-    public AjaxResult getInfo(@PathVariable("flowMenuId" ) Long flowMenuId) {
+    public AjaxResult getInfo(@PathVariable("flowMenuId" ) String flowMenuId) {
         return success(wfFlowMenuService.selectWfFlowMenuByFlowMenuId(flowMenuId));
     }
 

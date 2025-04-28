@@ -35,7 +35,7 @@ public class MultiInstanceHandler {
      * @param execution
      * @return
      */
-    public Set<String> getUserIds(DelegateExecution execution) {
+    public Set<String> getUserNames(DelegateExecution execution) {
         Set<String> candidateUserIds = new LinkedHashSet<>();
         FlowElement flowElement = execution.getCurrentFlowElement();
         if (ObjectUtil.isNotEmpty(flowElement) && flowElement instanceof UserTask) {

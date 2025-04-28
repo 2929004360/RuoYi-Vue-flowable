@@ -315,4 +315,15 @@ public class WfProcessController extends BaseController {
     public R<String> ddToBpmn(@RequestBody DdToBpmn ddToBpmn) {
         return processService.dingdingToBpmn(ddToBpmn);
     }
+
+    /**
+     * 查询流程是否结束
+     *
+     * @param procInsId
+     * @param
+     */
+    @GetMapping("/iscompleted")
+    public R processIsCompleted(String procInsId) {
+        return R.ok(processService.processIsCompleted(procInsId));
+    }
 }

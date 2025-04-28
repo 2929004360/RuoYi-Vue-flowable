@@ -3,6 +3,7 @@ package com.ruoyi.flowable.service;
 
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.flowable.api.domain.bo.WfTaskBo;
+import me.chanjar.weixin.common.error.WxErrorException;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
@@ -173,5 +174,5 @@ public interface IWfTaskService {
      *
      * @param task 任务实体
      */
-    void updateTaskStatusWhenCreated(Task task);
+    void updateTaskStatusWhenCreated(Task task) throws WxErrorException;
 }

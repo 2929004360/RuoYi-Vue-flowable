@@ -234,4 +234,12 @@ public interface ISysUserService {
      * @return 用户列表
      */
     List<SysUser> selectSysUserByUserIdList(long[] userIds);
+
+    /**
+     * 根据部门id获取用户列表
+     *
+     * @param deptId
+     * @return
+     */
+    List<SysUser> getUserListByDeptId(long deptId);
 }

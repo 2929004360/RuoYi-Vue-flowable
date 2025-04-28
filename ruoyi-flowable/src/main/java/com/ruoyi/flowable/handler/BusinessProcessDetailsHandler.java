@@ -2,7 +2,7 @@ package com.ruoyi.flowable.handler;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.ruoyi.common.enums.FlowMenuEnum;
-import com.ruoyi.flowable.api.service.IWorkLeaveServiceApi;
+import com.ruoyi.flowable.api.service.IWorkRiskServiceApi;
 import com.ruoyi.flowable.constant.ProcessConstants;
 import com.ruoyi.flowable.domain.vo.WfDetailVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class BusinessProcessDetailsHandler {
 
     @Autowired
     @Lazy
-    private IWorkLeaveServiceApi workLeaveServiceApi;
+    private IWorkRiskServiceApi workRiskServiceApi;
 
     /**
      * 设置业务流程
@@ -40,10 +40,11 @@ public class BusinessProcessDetailsHandler {
         // 业务流程类型
         String businessProcessType = processVariables.get(ProcessConstants.BUSINESS_PROCESS_TYPE).toString();
 
-        // 请假和销假流程
-        if (FlowMenuEnum.LEAVE_FLOW_MENU.getCode().equals(businessProcessType)) {
-            detailVo.setBusinessProcess(BeanUtil.beanToMap(workLeaveServiceApi.selectWorkLeaveByLeaveId(businessId), new HashMap<>(16), false, false));
+        // 隐患流程
+        if (FlowMenuEnum.RISK_FLOW_MENU.getCode().equals(businessProcessType)) {
+            detailVo.setBusinessProcess(BeanUtil.beanToMap(workRiskServiceApi.selectWorkRiskByRiskId(businessId), new HashMap<>(16), false, false));
             return;
         }
+
     }
 }

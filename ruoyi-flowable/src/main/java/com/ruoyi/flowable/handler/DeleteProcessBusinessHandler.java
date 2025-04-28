@@ -3,8 +3,8 @@ package com.ruoyi.flowable.handler;
 import com.ruoyi.common.enums.FlowMenuEnum;
 import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.flowable.api.domain.WfBusinessProcess;
-import com.ruoyi.flowable.api.domain.vo.WorkLeaveVo;
-import com.ruoyi.flowable.api.service.IWorkLeaveServiceApi;
+import com.ruoyi.flowable.api.domain.vo.WorkRiskVo;
+import com.ruoyi.flowable.api.service.IWorkRiskServiceApi;
 import com.ruoyi.flowable.service.IWfBusinessProcessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class DeleteProcessBusinessHandler {
 
     @Autowired
     @Lazy
-    private IWorkLeaveServiceApi workLeaveServiceApi;
+    private IWorkRiskServiceApi workRiskServiceApi;
 
     /**
      * 删除业务流程
@@ -41,12 +41,12 @@ public class DeleteProcessBusinessHandler {
         List<WfBusinessProcess> list = wfBusinessProcessService.selectWfBusinessProcessListByProcessId(ids);
 
         for (WfBusinessProcess wfBusinessProcess : list) {
-            // 请假流程
-            if (FlowMenuEnum.LEAVE_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
-                WorkLeaveVo workLeaveVo = new WorkLeaveVo();
-                workLeaveVo.setLeaveId(Long.valueOf(wfBusinessProcess.getBusinessId()));
-                workLeaveVo.setSchedule(ProcessStatus.UNAPPROVED.getStatus());
-                workLeaveServiceApi.updateWorkLeave(workLeaveVo);
+            // 隐患流程
+            if (FlowMenuEnum.RISK_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
+                WorkRiskVo workRiskVo = new WorkRiskVo();
+                workRiskVo.setRiskId(Long.valueOf(wfBusinessProcess.getBusinessId()));
+                workRiskVo.setSchedule(ProcessStatus.UNAPPROVED.getStatus());
+                workRiskServiceApi.updateWorkRisk(workRiskVo);
             }
 
             wfBusinessProcessService.deleteWfBusinessProcessByBusinessId(wfBusinessProcess.getBusinessId(), wfBusinessProcess.getBusinessProcessType());

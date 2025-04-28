@@ -29,6 +29,10 @@ public class SysUser extends BaseEntity
     @Excel(name = "部门编号", type = Type.IMPORT)
     private Long deptId;
 
+    /** 厂区ID */
+    @Excel(name = "厂区编号", type = Type.IMPORT)
+    private Long factoryId;
+
     /** 用户账号 */
     @Excel(name = "登录名称")
     private String userName;
@@ -55,6 +59,11 @@ public class SysUser extends BaseEntity
     /** 密码 */
     private String password;
 
+    /**
+     * 微信openid
+     */
+    private String openid;
+
     /** 帐号状态（0正常 1停用） */
     @Excel(name = "帐号状态", readConverterExp = "0=正常,1=停用")
     private String status;
@@ -76,6 +85,13 @@ public class SysUser extends BaseEntity
         @Excel(name = "部门负责人", targetAttr = "leader", type = Type.EXPORT)
     })
     private SysDept dept;
+
+
+    /** 厂区对象 */
+    @Excels({
+            @Excel(name = "厂区名称", targetAttr = "factoryName", type = Type.EXPORT),
+    })
+    private SysFactory factory;
 
     /** 角色对象 */
     private List<SysRole> roles;
@@ -167,6 +183,7 @@ public class SysUser extends BaseEntity
     }
 
     @Size(min = 0, max = 11, message = "手机号码长度不能超过11个字符")
+    @NotBlank(message = "手机号码不能为空")
     public String getPhonenumber()
     {
         return phonenumber;
@@ -295,5 +312,30 @@ public class SysUser extends BaseEntity
     public void setRoleId(Long roleId)
     {
         this.roleId = roleId;
+    }
+
+    public String getOpenid() {
+        return openid;
+    }
+
+    public void setOpenid(String openid) {
+        this.openid = openid;
+    }
+
+    @NotNull(message = "所属厂区不能为空")
+    public Long getFactoryId() {
+        return factoryId;
+    }
+
+    public void setFactoryId(Long factoryId) {
+        this.factoryId = factoryId;
+    }
+
+    public SysFactory getFactory() {
+        return factory;
+    }
+
+    public void setFactory(SysFactory factory) {
+        this.factory = factory;
     }
 }

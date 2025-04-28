@@ -27,7 +27,7 @@ public class WfFlowMenuServiceImpl implements IWfFlowMenuService {
      * @return 流程菜单
      */
     @Override
-    public WfFlowMenu selectWfFlowMenuByFlowMenuId(Long flowMenuId) {
+    public WfFlowMenu selectWfFlowMenuByFlowMenuId(String flowMenuId) {
         return wfFlowMenuMapper.selectWfFlowMenuByFlowMenuId(flowMenuId);
     }
 

@@ -59,6 +59,16 @@
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-system-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-miniapp</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-common</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

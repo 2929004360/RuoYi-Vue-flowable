@@ -47,6 +47,9 @@
         <redisson.version>3.16.2</redisson.version>
         <easyexcel.version>2.2.6</easyexcel.version>
         <ip2region.version>1.7.2</ip2region.version>
+
+         <!-- 微信java版本 -->
+        <weixin-java.version>4.3.0</weixin-java.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -362,6 +365,18 @@
                 <groupId>org.lionsoul</groupId>
                 <artifactId>ip2region</artifactId>
                 <version>${ip2region.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-miniapp</artifactId>
+                <version>${weixin-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-common</artifactId>
+                <version>${weixin-java.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

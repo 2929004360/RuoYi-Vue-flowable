@@ -358,16 +358,15 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             flowTask.setProcInsId(task.getProcessInstanceId());
             // 流程发起人信息
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
-            if (ObjectUtil.isNotNull(historicProcessInstance)) {
-                Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-                SysUser sysUser = userServiceApi.selectUserById(userId);
-                String nickName = sysUser.getNickName();
-                flowTask.setStartUserId(userId);
-                flowTask.setStartUserName(nickName);
-                // 流程变量
-                flowTask.setProcVars(task.getProcessVariables());
-                flowList.add(flowTask);
-            }
+
+            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
+            SysUser sysUser = userServiceApi.selectUserById(userId);
+            String nickName = sysUser.getNickName();
+            flowTask.setStartUserId(userId);
+            flowTask.setStartUserName(nickName);
+            // 流程变量
+            flowTask.setProcVars(task.getProcessVariables());
+            flowList.add(flowTask);
         }
         page.setRecords(flowList);
         return TableDataInfo.build(page);
@@ -749,6 +748,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             WfRoamHistorical wfRoamHistorical = new WfRoamHistorical();
             wfRoamHistorical.setBusinessId(businessId);
             detailVo.setHistoryApproveProcNodeList(wfRoamHistoricalService.selectWfRoamHistoricalList(wfRoamHistorical));
+            detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns));
         }
         detailVo.setFlowViewer(getFlowViewer(bpmnModel, procInsId));
         return detailVo;
@@ -867,6 +867,31 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     public void resubmitProcess(ResubmitProcess resubmitProcess) {
         WfBusinessProcess wfBusinessProcess = wfBusinessProcessService.selectWfBusinessProcessByProcessId(resubmitProcess.getProcInsId());
         resubmitProcessHandler.resubmit(wfBusinessProcess);
+    }
+
+    /**
+     * 查询流程是否结束
+     *
+     * @param procInsId
+     * @param
+     */
+    @Override
+    public boolean processIsCompleted(String procInsId) {
+        // 获取流程状态
+        HistoricVariableInstance processStatusVariable = historyService.createHistoricVariableInstanceQuery()
+                .processInstanceId(procInsId)
+                .variableName(ProcessConstants.PROCESS_STATUS_KEY)
+                .singleResult();
+        if (ObjectUtil.isNotNull(processStatusVariable)) {
+            String processStatus = null;
+            if (ObjectUtil.isNotNull(processStatusVariable)) {
+                processStatus = Convert.toStr(processStatusVariable.getValue());
+                if(com.ruoyi.common.utils.StringUtils.equalsIgnoreCase(processStatus, ProcessStatus.COMPLETED.getStatus())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     StartEvent createStartEvent(JSONObject flowNode) {
@@ -1475,12 +1500,28 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         List<HistoricActivityInstance> historicActivityInstanceList = historyService.createHistoricActivityInstanceQuery().processInstanceId(procInsId).activityTypes(CollUtil.newHashSet(BpmnXMLConstants.ELEMENT_EVENT_START, BpmnXMLConstants.ELEMENT_EVENT_END, BpmnXMLConstants.ELEMENT_TASK_USER)).orderByHistoricActivityInstanceStartTime().desc().orderByHistoricActivityInstanceEndTime().desc().list();
         List<Comment> commentList = taskService.getProcessInstanceComments(procInsId);
         List<WfProcNodeVo> elementVoList = new ArrayList<>();
+
+        // 用一个标志来记录是否已经添加过 `endEvent`
+        boolean foundEndEvent = false;
+
+
         for (HistoricActivityInstance activityInstance : historicActivityInstanceList) {
             WfProcNodeVo elementVo = new WfProcNodeVo();
             elementVo.setProcDefId(activityInstance.getProcessDefinitionId());
             elementVo.setActivityId(activityInstance.getActivityId());
             elementVo.setActivityName(activityInstance.getActivityName());
+
+            // 判断是否是 `endEvent`
+            if ("endEvent".equals(activityInstance.getActivityType())) {
+                if (foundEndEvent) {
+                    continue;
+                }
+                // 如果还没有添加过，标记已添加 `endEvent`
+                foundEndEvent = true;
+            }
+
             elementVo.setActivityType(activityInstance.getActivityType());
+
             elementVo.setCreateTime(activityInstance.getStartTime());
             elementVo.setEndTime(activityInstance.getEndTime());
             if (ObjectUtil.isNotNull(activityInstance.getDurationInMillis())) {

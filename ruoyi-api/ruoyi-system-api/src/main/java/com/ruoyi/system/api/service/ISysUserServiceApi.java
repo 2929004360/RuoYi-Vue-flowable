@@ -49,4 +49,12 @@ public interface ISysUserServiceApi {
      * @return 用户列表
      */
     List<SysUser> getUserListByRoleId(String roleId);
+
+    /**
+     * 根据部门id获取用户列表
+     *
+     * @param deptId
+     * @return
+     */
+    List<SysUser> getUserListByDeptId(long deptId);
 }

@@ -22,10 +22,7 @@ import com.ruoyi.flowable.mapper.WfModelProcdefMapper;
 import com.ruoyi.flowable.page.PageQuery;
 import com.ruoyi.flowable.page.TableDataInfo;
 import com.ruoyi.flowable.service.*;
-import com.ruoyi.flowable.utils.IdWorker;
-import com.ruoyi.flowable.utils.JsonUtils;
-import com.ruoyi.flowable.utils.ModelUtils;
-import com.ruoyi.flowable.utils.StringUtils;
+import com.ruoyi.flowable.utils.*;
 import com.ruoyi.system.api.service.ISysDeptServiceApi;
 import com.ruoyi.system.api.service.ISysUserServiceApi;
 import lombok.extern.slf4j.Slf4j;
@@ -352,6 +349,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
                 permission.setType(PermissionEnum.DEPT_PERMISSION.getCode());
                 permission.setModelPermissionId(String.valueOf(idWorker.nextId()));
                 permission.setModelId(id);
+                permission.setCreateTime(DateUtils.getNowDate());
             }
             permissionsList.addAll(deptList);
         }
@@ -361,6 +359,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
                 permission.setType(PermissionEnum.USER_PERMISSION.getCode());
                 permission.setModelPermissionId(String.valueOf(idWorker.nextId()));
                 permission.setModelId(id);
+                permission.setCreateTime(DateUtils.getNowDate());
             }
             permissionsList.addAll(userList);
         }
@@ -372,6 +371,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
             permission.setModelId(id);
             permission.setPermissionId(SecurityUtils.getUserId());
             permission.setName(SecurityUtils.getLoginUser().getUser().getNickName());
+            permission.setCreateTime(DateUtils.getNowDate());
             permissionsList.add(permission);
         }
         wfModelPermissionService.insertWfModelPermissionList(permissionsList);
@@ -674,9 +674,9 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 修改流程定义的分类，便于搜索流程
         repositoryService.setProcessDefinitionCategory(procDef.getId(), model.getCategory());
 
-        if (metaInfo != null && FormType.PROCESS.getType().equals(metaInfo.getFormType())) {
+        if (metaInfo != null) {
             // 保存部署表单
-            return deployFormService.saveInternalDeployForm(deployment.getId(), bpmnModel);
+            deployFormService.saveInternalDeployForm(deployment.getId(), bpmnModel);
         }
 
         return true;

@@ -37,13 +37,13 @@ public class BaseController
 
     @ModelAttribute
     public void init(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
-//        try {
-//            if (!SysUser.isAdmin(SecurityUtils.getUserId())) {
-//                this.verificationRequest(httpServletRequest, response);
-//            }
-//        } catch (Exception e) {
-//            this.verificationRequest(httpServletRequest, response);
-//        }
+        try {
+            if (!SysUser.isAdmin(SecurityUtils.getUserId())) {
+                this.verificationRequest(httpServletRequest, response);
+            }
+        } catch (Exception e) {
+            this.verificationRequest(httpServletRequest, response);
+        }
     }
 
     /**

@@ -7,6 +7,7 @@
     <resultMap type="SysUser" id="SysUserResult">
         <id property="userId" column="user_id"/>
         <result property="deptId" column="dept_id"/>
+        <result property="factoryId" column="factory_id"/>
         <result property="userName" column="user_name"/>
         <result property="nickName" column="nick_name"/>
         <result property="email" column="email"/>
@@ -14,6 +15,7 @@
         <result property="sex" column="sex"/>
         <result property="avatar" column="avatar"/>
         <result property="password" column="password"/>
+        <result property="openid" column="openid"/>
         <result property="status" column="status"/>
         <result property="delFlag" column="del_flag"/>
         <result property="loginIp" column="login_ip"/>
@@ -24,6 +26,7 @@
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
         <association property="dept" javaType="SysDept" resultMap="deptResult"/>
+        <association property="factory" javaType="SysFactory" resultMap="SysFactoryResult"/>
         <collection property="roles" javaType="java.util.List" resultMap="RoleResult"/>
     </resultMap>
 
@@ -35,6 +38,11 @@
         <result property="orderNum" column="order_num"/>
         <result property="leader" column="leader"/>
         <result property="status" column="dept_status"/>
+    </resultMap>
+
+    <resultMap type="SysFactory" id="SysFactoryResult">
+        <result property="factoryId" column="factory_id"/>
+        <result property="factoryName" column="factory_name"/>
     </resultMap>
 
     <resultMap id="RoleResult" type="SysRole">
@@ -49,12 +57,14 @@
     <sql id="selectUserVo">
         select u.user_id,
                u.dept_id,
+               u.factory_id,
                u.user_name,
                u.nick_name,
                u.email,
                u.avatar,
                u.phonenumber,
                u.password,
+               u.openid,
                u.sex,
                u.status,
                u.del_flag,
@@ -75,25 +85,35 @@
                r.role_key,
                r.role_sort,
                r.data_scope,
-               r.status as role_status
+               r.status as role_status,
+               f.factory_id,
+               f.factory_name
         from sys_user u
                  left join sys_dept d on u.dept_id = d.dept_id
                  left join sys_user_role ur on u.user_id = ur.user_id
                  left join sys_role r on r.role_id = ur.role_id
+                 left join sys_factory f on u.factory_id = f.factory_id
     </sql>
 
     <select id="selectUserList" parameterType="SysUser" resultMap="SysUserResult">
-        select u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex,
+        select u.user_id, u.dept_id, u.factory_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex,
         u.status,
-        u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader from sys_user
+        u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader, f.factory_id, f.factory_name from sys_user
         u
         left join sys_dept d on u.dept_id = d.dept_id
+        left join sys_factory f on u.factory_id = f.factory_id
         where u.del_flag = '0'
         <if test="userId != null and userId != 0">
             AND u.user_id = #{userId}
         </if>
+        <if test="factoryId != null and factoryId != 0">
+            AND f.factory_id = #{factoryId}
+        </if>
         <if test="userName != null and userName != ''">
             AND u.user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="nickName != null and nickName != ''">
+            AND u.nick_name like concat('%', #{nickName}, '%')
         </if>
         <if test="status != null and status != ''">
             AND u.status = #{status}
@@ -116,7 +136,7 @@
     </select>
 
     <select id="selectAllocatedList" parameterType="SysUser" resultMap="SysUserResult">
-        select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber,
+        select distinct u.user_id, u.dept_id, u.factory_id, u.user_name, u.nick_name, u.email, u.phonenumber,
         u.status, u.create_time
         from sys_user u
         left join sys_dept d on u.dept_id = d.dept_id
@@ -134,7 +154,7 @@
     </select>
 
     <select id="selectUnallocatedList" parameterType="SysUser" resultMap="SysUserResult">
-        select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber,
+        select distinct u.user_id, u.dept_id, u.factory_id, u.user_name, u.nick_name, u.email, u.phonenumber,
         u.status, u.create_time
         from sys_user u
         left join sys_dept d on u.dept_id = d.dept_id
@@ -191,7 +211,7 @@
     </select>
 
     <select id="getUserListByRoleId" resultMap="SysUserResult">
-        select u.user_id, u.nick_name, u.user_name, u.phonenumber
+        select u.user_id, u.nick_name, u.user_name, u.phonenumber,u.openid
         from sys_user u
                  INNER JOIN sys_user_role ur
                             ON u.user_id = ur.user_id
@@ -208,10 +228,18 @@
         </foreach>
     </select>
 
+    <select id="getUserListByDeptId" resultMap="SysUserResult">
+        select user_id, nick_name, user_name, phonenumber,openid
+        from sys_user
+        where del_flag = '0'
+          AND dept_id = #{deptId}
+    </select>
+
     <insert id="insertUser" parameterType="SysUser" useGeneratedKeys="true" keyProperty="userId">
         insert into sys_user(
         <if test="userId != null and userId != 0">user_id,</if>
         <if test="deptId != null and deptId != 0">dept_id,</if>
+        <if test="factoryId != null and factoryId != 0">factory_id,</if>
         <if test="userName != null and userName != ''">user_name,</if>
         <if test="nickName != null and nickName != ''">nick_name,</if>
         <if test="email != null and email != ''">email,</if>
@@ -219,13 +247,15 @@
         <if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
         <if test="sex != null and sex != ''">sex,</if>
         <if test="password != null and password != ''">password,</if>
+        <if test="openid != null and openid != ''">openid,</if>
         <if test="status != null and status != ''">status,</if>
         <if test="createBy != null and createBy != ''">create_by,</if>
         <if test="remark != null and remark != ''">remark,</if>
         create_time
         )values(
         <if test="userId != null and userId != ''">#{userId},</if>
-        <if test="deptId != null and deptId != ''">#{deptId},</if>
+        <if test="deptId != null and deptId != 0">#{deptId},</if>
+        <if test="factoryId != null and factoryId != 0">#{factoryId},</if>
         <if test="userName != null and userName != ''">#{userName},</if>
         <if test="nickName != null and nickName != ''">#{nickName},</if>
         <if test="email != null and email != ''">#{email},</if>
@@ -233,6 +263,7 @@
         <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
         <if test="sex != null and sex != ''">#{sex},</if>
         <if test="password != null and password != ''">#{password},</if>
+        <if test="openid != null and openid != ''">#{openid},</if>
         <if test="status != null and status != ''">#{status},</if>
         <if test="createBy != null and createBy != ''">#{createBy},</if>
         <if test="remark != null and remark != ''">#{remark},</if>
@@ -244,6 +275,7 @@
         update sys_user
         <set>
             <if test="deptId != null and deptId != 0">dept_id = #{deptId},</if>
+            <if test="factoryId != null and factoryId != 0">factory_id = #{factoryId},</if>
             <if test="userName != null and userName != ''">user_name = #{userName},</if>
             <if test="nickName != null and nickName != ''">nick_name = #{nickName},</if>
             <if test="email != null ">email = #{email},</if>
@@ -251,6 +283,7 @@
             <if test="sex != null and sex != ''">sex = #{sex},</if>
             <if test="avatar != null and avatar != ''">avatar = #{avatar},</if>
             <if test="password != null and password != ''">password = #{password},</if>
+            <if test="openid != null and openid != ''">openid = #{openid},</if>
             <if test="status != null and status != ''">status = #{status},</if>
             <if test="loginIp != null and loginIp != ''">login_ip = #{loginIp},</if>
             <if test="loginDate != null">login_date = #{loginDate},</if>

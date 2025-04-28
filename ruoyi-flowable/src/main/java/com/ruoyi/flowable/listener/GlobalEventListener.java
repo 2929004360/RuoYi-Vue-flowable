@@ -13,8 +13,8 @@ import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.enums.FlowMenuEnum;
 import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.flowable.api.domain.WfBusinessProcess;
-import com.ruoyi.flowable.api.domain.vo.WorkLeaveVo;
-import com.ruoyi.flowable.api.service.IWorkLeaveServiceApi;
+import com.ruoyi.flowable.api.domain.vo.WorkRiskVo;
+import com.ruoyi.flowable.api.service.IWorkRiskServiceApi;
 import com.ruoyi.flowable.constant.ProcessConstants;
 import com.ruoyi.flowable.constant.TaskConstants;
 import com.ruoyi.flowable.domain.WfRoamHistorical;
@@ -22,11 +22,14 @@ import com.ruoyi.flowable.domain.vo.WfProcNodeVo;
 import com.ruoyi.flowable.service.IWfBusinessProcessService;
 import com.ruoyi.flowable.service.IWfRoamHistoricalService;
 import com.ruoyi.flowable.service.IWfTaskService;
+import com.ruoyi.flowable.utils.DateUtils;
 import com.ruoyi.flowable.utils.IdWorker;
 import com.ruoyi.flowable.utils.StringUtils;
+import com.ruoyi.system.api.service.ISysConfigServiceApi;
 import com.ruoyi.system.api.service.ISysDeptServiceApi;
 import com.ruoyi.system.api.service.ISysRoleServiceApi;
 import com.ruoyi.system.api.service.ISysUserServiceApi;
+import me.chanjar.weixin.common.error.WxErrorException;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.common.engine.api.delegate.event.FlowableEngineEntityEvent;
 import org.flowable.engine.HistoryService;
@@ -42,7 +45,6 @@ import org.flowable.task.api.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -100,7 +102,11 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
 
     @Autowired
     @Lazy
-    private IWorkLeaveServiceApi workLeaveServiceApi;
+    private IWorkRiskServiceApi workRiskServiceApi;
+
+    @Autowired
+    @Lazy
+    private ISysConfigServiceApi sysConfigServiceApi;
 
 
     /**
@@ -121,14 +127,21 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
     @Override
     protected void taskCreated(FlowableEngineEntityEvent event) {
         System.out.println("监听任务创建事件" + event.getEntity());
-        wfTaskService.updateTaskStatusWhenCreated((Task) event.getEntity());
+        try {
+            String key = sysConfigServiceApi.selectConfigByKey("sys.wechat.notice");
+            if (Boolean.parseBoolean(key)) {
+                wfTaskService.updateTaskStatusWhenCreated((Task) event.getEntity());
+            }
+        } catch (WxErrorException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 流程结束监听器
      */
     @Override
-    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(rollbackFor = Exception.class)
     protected void processCompleted(FlowableEngineEntityEvent event) {
         System.out.println("流程结束监听器" + event.getProcessInstanceId());
         String processInstanceId = event.getProcessInstanceId();
@@ -156,45 +169,44 @@ public class GlobalEventListener extends AbstractFlowableEngineEventListener {
     private void updateBusiness(String processInstanceId, ProcessStatus status) throws Exception {
         WfBusinessProcess wfBusinessProcess = wfBusinessProcessService.selectWfBusinessProcessByProcessId(processInstanceId);
         if (ObjectUtil.isNotNull(wfBusinessProcess)) {
-            // 请假流程
-            if (FlowMenuEnum.LEAVE_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
-                updateWorkLeave(wfBusinessProcess, status);
+            // 隐患流程
+            if (FlowMenuEnum.RISK_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
+                updateWorkRisk(wfBusinessProcess, status);
                 return;
             }
-
         }
     }
 
-
     /**
-     * 修改请假
+     * 修改隐患
      *
      * @param wfBusinessProcess 业务流程
      * @param status            流程状态
      */
-    private void updateWorkLeave(WfBusinessProcess wfBusinessProcess, ProcessStatus status) throws Exception {
+    private void updateWorkRisk(WfBusinessProcess wfBusinessProcess, ProcessStatus status) throws JsonProcessingException {
         String businessId = wfBusinessProcess.getBusinessId();
-        WorkLeaveVo workLeaveVo = workLeaveServiceApi.selectWorkLeaveByLeaveId(businessId);
+        WorkRiskVo workRiskVo = workRiskServiceApi.selectWorkRiskByRiskId(businessId);
 
-        workLeaveVo.setLeaveId(Long.valueOf(businessId));
+        workRiskVo.setRiskId(Long.valueOf(businessId));
         // 流程取消
         if (ProcessStatus.CANCELED.getStatus().equals(status.getStatus())) {
-            workLeaveVo.setSchedule(ProcessStatus.CANCELED.getStatus());
+            workRiskVo.setSchedule(ProcessStatus.CANCELED.getStatus());
         }
 
         // 流程终止
         if (ProcessStatus.TERMINATED.getStatus().equals(status.getStatus())) {
-            workLeaveVo.setSchedule(ProcessStatus.TERMINATED.getStatus());
+            workRiskVo.setSchedule(ProcessStatus.TERMINATED.getStatus());
             // 插入流程流转历史
             insertWfRoamHistorical(wfBusinessProcess);
         }
 
         // 流程完成
         if (ProcessStatus.RUNNING.getStatus().equals(status.getStatus())) {
-            workLeaveVo.setSchedule(ProcessStatus.COMPLETED.getStatus());
+            workRiskVo.setSchedule(ProcessStatus.COMPLETED.getStatus());
+            workRiskVo.setCompletionTime(DateUtils.getNowDate());
         }
 
-        workLeaveServiceApi.updateWorkLeave(workLeaveVo);
+        workRiskServiceApi.updateWorkRisk(workRiskVo);
     }
 
     /**

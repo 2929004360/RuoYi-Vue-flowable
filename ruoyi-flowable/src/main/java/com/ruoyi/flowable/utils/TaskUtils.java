@@ -30,7 +30,7 @@ public class TaskUtils {
         SysUser user = SecurityUtils.getLoginUser().getUser();
         if (ObjectUtil.isNotNull(user)) {
             if (ObjectUtil.isNotEmpty(user.getRoles())) {
-                user.getRoles().forEach(role -> list.add(TaskConstants.ROLE_GROUP_PREFIX + role));
+                user.getRoles().forEach(role -> list.add(TaskConstants.ROLE_GROUP_PREFIX + role.getRoleId()));
             }
             if (ObjectUtil.isNotNull(user.getDeptId())) {
                 list.add(TaskConstants.DEPT_GROUP_PREFIX + user.getDeptId());

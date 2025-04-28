@@ -7,7 +7,7 @@ package com.ruoyi.common.enums;
  */
 
 public enum FlowMenuEnum {
-    LEAVE_FLOW_MENU("请假菜单", "1", "2064,2065"),
+    RISK_FLOW_MENU("隐患菜单", "2", "2064,2078"),
     ;
 
     private final String name;

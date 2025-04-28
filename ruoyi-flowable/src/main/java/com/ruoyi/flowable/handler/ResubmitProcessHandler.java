@@ -4,8 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import com.ruoyi.common.enums.FlowMenuEnum;
 import com.ruoyi.common.enums.ProcessStatus;
 import com.ruoyi.flowable.api.domain.WfBusinessProcess;
-import com.ruoyi.flowable.api.domain.vo.WorkLeaveVo;
-import com.ruoyi.flowable.api.service.IWorkLeaveServiceApi;
+import com.ruoyi.flowable.api.domain.vo.WorkRiskVo;
+import com.ruoyi.flowable.api.service.IWorkRiskServiceApi;
 import com.ruoyi.flowable.service.IWfBusinessProcessService;
 import com.ruoyi.flowable.service.IWfProcessService;
 import org.flowable.engine.HistoryService;
@@ -41,7 +41,7 @@ public class ResubmitProcessHandler {
 
     @Autowired
     @Lazy
-    private IWorkLeaveServiceApi workLeaveServiceApi;
+    private IWorkRiskServiceApi workRiskServiceApi;
 
     /**
      * 重新发起流程
@@ -50,19 +50,20 @@ public class ResubmitProcessHandler {
      */
     @Transactional(rollbackFor = Exception.class)
     public void resubmit(WfBusinessProcess wfBusinessProcess) {
-        // 请假流程
-        if (FlowMenuEnum.LEAVE_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
-            updateLeave(wfBusinessProcess);
+        // 隐患流程
+        if (FlowMenuEnum.RISK_FLOW_MENU.getCode().equals(wfBusinessProcess.getBusinessProcessType())) {
+            updateRisk(wfBusinessProcess);
             return;
         }
     }
 
+
     /**
-     * 修改请假
+     * 修改隐患
      *
      * @param wfBusinessProcess 重新发起
      */
-    private void updateLeave(WfBusinessProcess wfBusinessProcess) {
+    private void updateRisk(WfBusinessProcess wfBusinessProcess) {
         // 删除流程实例
         List<String> ids = Collections.singletonList(wfBusinessProcess.getProcessId());
         // 删除历史流程实例
@@ -71,25 +72,25 @@ public class ResubmitProcessHandler {
         // 删除业务流程信息
         wfBusinessProcessService.deleteWfBusinessProcessByBusinessId(wfBusinessProcess.getBusinessId(), wfBusinessProcess.getBusinessProcessType());
 
-        WorkLeaveVo workLeaveVo = workLeaveServiceApi.selectWorkLeaveByLeaveId(wfBusinessProcess.getBusinessId());
+        WorkRiskVo workRiskVo = workRiskServiceApi.selectWorkRiskByRiskId(wfBusinessProcess.getBusinessId());
         // 发起流程
-        workLeaveVo.setBusinessId(String.valueOf(workLeaveVo.getLeaveId()));
-        workLeaveVo.setBusinessProcessType(FlowMenuEnum.LEAVE_FLOW_MENU.getCode());
-        ProcessInstance processInstance = wfProcessService.startProcessByDefId(workLeaveVo.getDefinitionId(), BeanUtil.beanToMap(workLeaveVo, new HashMap<>(16), false, false));
+        workRiskVo.setBusinessId(String.valueOf(workRiskVo.getRiskId()));
+        workRiskVo.setBusinessProcessType(FlowMenuEnum.RISK_FLOW_MENU.getCode());
+        ProcessInstance processInstance = wfProcessService.startProcessByDefId(workRiskVo.getDefinitionId(), BeanUtil.beanToMap(workRiskVo, new HashMap<>(16), false, false));
         String processInstanceId = processInstance.getProcessInstanceId();
 
         // 添加业务流程
         WfBusinessProcess process = new WfBusinessProcess();
         process.setProcessId(processInstanceId);
-        process.setBusinessId(String.valueOf(workLeaveVo.getLeaveId()));
-        process.setBusinessProcessType(FlowMenuEnum.LEAVE_FLOW_MENU.getCode());
+        process.setBusinessId(String.valueOf(workRiskVo.getRiskId()));
+        process.setBusinessProcessType(FlowMenuEnum.RISK_FLOW_MENU.getCode());
         wfBusinessProcessService.insertWfBusinessProcess(process);
 
         // 修改对应流程
-        WorkLeaveVo workLeave = new WorkLeaveVo();
-        workLeave.setProcessId(processInstanceId);
-        workLeave.setSchedule(ProcessStatus.RUNNING.getStatus());
-        workLeave.setLeaveId(workLeaveVo.getLeaveId());
-        workLeaveServiceApi.updateWorkLeave(workLeave);
+        WorkRiskVo workRisk = new WorkRiskVo();
+        workRisk.setProcessId(processInstanceId);
+        workRisk.setSchedule(ProcessStatus.RUNNING.getStatus());
+        workRisk.setRiskId(workRiskVo.getRiskId());
+        workRiskServiceApi.updateWorkRisk(workRisk);
     }
 }

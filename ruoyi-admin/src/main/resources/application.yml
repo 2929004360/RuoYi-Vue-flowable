@@ -7,12 +7,14 @@ ruoyi:
   # 版权年份
   copyrightYear: 2024
   # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  profile: /home/ruoyi/uploadPath
-#  profile: D:/ruoyi/uploadPath
+#  profile: /home/ruoyi/uploadPath
+  profile: D:/ruoyi/uploadPath
   # 获取ip地址开关
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
+  # 公众号code
+  publicCode: ruoyi-flowable666
 
 # 开发环境配置
 server:
@@ -35,6 +37,20 @@ server:
       io: 8
       # 阻塞任务线程池, 当执行类似servlet请求阻塞操作, undertow会从这个线程池中取得线程,它的值设置取决于系统的负载
       worker: 256
+
+# 微信配置
+wx:
+  miniapp:
+    configs:
+      - appid: wx7c250ebe7d5ecad4
+        secret: b1603afdcd4feef4592979f46c65275f
+        token: #微信小程序消息服务器配置的token
+        aesKey: #微信小程序消息服务器配置的EncodingAESKey
+        msgDataFormat: JSON
+
+  # 订阅模板
+  pendingApprovalId: Qwe9UtwNg32UQx_mQgFiY8xQt29t0aI2kVghFgBg0ko # 待审批通知
+  approvalResultId: NDkbATIDMQpP23gtrWnl61ftxfchPm_MxcttSvunyVI # 审批结果通知
 
 # 日志配置
 logging:
@@ -77,9 +93,9 @@ spring:
     # 端口，默认为6379
     port: 6379
     # 数据库索引
-    database: 1
+    database: 5
     # 密码
-    password: admin123
+    password: 123456
 #    password:
     # 连接超时时间
     timeout: 10s
