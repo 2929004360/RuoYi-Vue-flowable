@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.IndexMapper">
+
+    <resultMap type="PieChartData" id="PieChartDataResult">
+        <result property="name" column="name"/>
+        <result property="value" column="value"/>
+    </resultMap>
+
+
+    <select id="getRiskAreaData" resultMap="PieChartDataResult">
+        SELECT *
+        FROM (SELECT COUNT(0) AS `value`,
+                     '炼铁'   AS name
+              FROM work_risk
+              where risk_area = '1'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '炼钢' AS name
+              FROM work_risk
+              where risk_area = '2'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '轧钢' AS name
+              FROM work_risk
+              where risk_area = '3'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '能源' AS name
+              FROM work_risk
+              where risk_area = '4'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '机加' AS name
+              FROM work_risk
+              where risk_area = '5'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '原料' AS name
+              FROM work_risk
+              where risk_area = '6'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '物流' AS name
+              FROM work_risk
+              where risk_area = '7'
+                AND del_flag = '0'
+              UNION ALL
+              SELECT
+                  COUNT(0) AS `value`, '计量' AS name
+              FROM work_risk
+              where risk_area = '8'
+                AND del_flag = '0'
+              ) w
+    </select>
+    <select id="countWorkRiskByDate" resultType="java.lang.Integer">
+        SELECT COUNT(0)
+        FROM work_risk
+        WHERE create_time BETWEEN #{startDate} AND #{endDate}
+          AND del_flag = '0'
+    </select>
+
+    <select id="selectCountUser" resultType="java.lang.Integer">
+        select COUNT(0) from sys_user
+        where del_flag = '0'
+    </select>
+
+    <select id="selectCountRisk" resultType="java.lang.Integer">
+        select COUNT(0)
+        from work_risk
+        where del_flag = '0'
+    </select>
+    <select id="selectCountCompleteRisk" resultType="java.lang.Integer">
+        select COUNT(0)
+        from work_risk
+        where del_flag = '0'
+          AND completion_time IS NOT NULL
+    </select>
+    <select id="selectCountTodayRisk" resultType="java.lang.Integer">
+        select COUNT(0)
+        from work_risk
+        where del_flag = '0'
+          AND DATE_FORMAT(create_time,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')
+    </select>
+</mapper>
